@@ -32,12 +32,15 @@ class Lexer:
             for token_type, pattern in self.rules:
                 match = pattern.match(text, pos)
                 if match:
+                    value = match.group().lower() if token_type[0] == "b" else match.group()
                     tokens.append(Token(token_type, match.group()))
                     pos = match.end()
                     rea
                     
 # Reglas de producción para el lenguaje
 rules = [
-    ("EXECUTE", r'\bEXEC'),
-    ("DEFINITIONS", r'\bNEW'),
+    ("bEXECUTE", r'\b exec'), # Ejecutar
+    ("bDEFINITION", r'\b(new var|new macro)'), #Definiciones de variables o macros
+    ("bNOMBRE", r'\w') # Nombres de variables o macros
+    
 ]
