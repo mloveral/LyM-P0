@@ -17,7 +17,7 @@ class Token:
 # Esta clase define el lexer del parser
 class Lexer:
     def __init__(self, rules: List[Tuple[str, str]]):
-        self.reglas = [(regla, re.compile(pattern)) for regla, pattern in reglas]
+        self.reglas = [(regla, re.compile(pattern)) for regla, pattern in rules]
         self.espacio= re.compile(r'\s+')
     
     def tokenize(self, text:str) -> List[Token]:
@@ -34,7 +34,10 @@ class Lexer:
                 if match:
                     tokens.append(Token(token_type, match.group()))
                     pos = match.end()
-                    rea
+            else:
+                raise SyntaxError(f"Unexpected character: {text[pos]}")
+                    
+        return tokens
                     
 # Reglas de producción para el lenguaje
 rules = [
