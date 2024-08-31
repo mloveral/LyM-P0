@@ -44,6 +44,26 @@ class Lexer:
 rules = [
     ("bEXECUTE", r'\b exec'), # Ejecutar
     ("bDEFINITION", r'\b(new var|new macro)'), #Definiciones de variables o macros
-    ("bNOMBRE", r'\w') # Nombres de variables o macros
+    ("bNOMBRE", r'\w'), # Nombres de variables o macros
+    
+    ("LPAREN", r'\('),  # Paréntesis izquierdo
+    ("RPAREN", r'\)'),  # Paréntesis derecho
+    ("LBRACE", r'\{'),  # Llave izquierda
+    ("RBRACE", r'\}'),  # Llave derecha
+    ("bMACRO", r'\b(new macro)'),  # Definición de macro
+    ("bVARIABLE", r'\b(new variable)'),  # Definición de variable
+    ("bNAME", r'\w+'),  # Nombres de variables o macros (modificado para capturar nombres completos)
+    ("NUMBER", r'\d+(\.\d*)?'),  # Valores numéricos
+    ("bCONSTANTS", r'\b(size|myx|myy|mychips|myballoons|balloonshere|chipshere|roomforchips)\b'),  # Constantes
+    ("bCONDITIONAL", r'\b(if|then|else|fi)\b'),  # Condicionales
+    ("bLOOP", r'\b(do|od)\b'),  # Bucles
+    ("bREPEAT", r'\b(rep|times)\b'),  # Repetición
+    ("bCONDITION", r'\b(isblocked\?|isfacing\?|zero\?|not)\b'),  # Condiciones
+    ("SEMICOLON", r'\;'),  # Punto y coma
+    ("bDIRECTIONS", r'\b(forward|right|backwards|left)\b'),  # Direcciones
+    ("bDIRECTION", r'\b(left|right|back)\b'),  # Dirección
+    ("bORIENTATION", r'\b(north|east|south|west)\b'),  # Orientación
+    ("bCOMMANDSEXE", r'\b(turntomy|turntothe|walk|jump|drop|pick|grab|letgo|pop)\b'),  # Comandos de ejecución
+    ("bOTHERCOMMANDS", r'\b(moves|nop|safeexe)\b')  # Otros comandos
     
 ]
