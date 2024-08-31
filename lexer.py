@@ -73,7 +73,7 @@ rules = [
 lexer = Lexer(rules)
 
 # Example input
-input_text = "{while not zero ?( rooomForChips )"
+input_text = "safeExe (walk(1) ) ;"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text)
