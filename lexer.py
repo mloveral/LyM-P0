@@ -1,5 +1,5 @@
 import re
-from Typing import List, Tuple
+from typing import List, Tuple
 
 # Clase para dividir el archivo de texto en pequeños tokens 
 #para simplificar el proceso de ver si la estructura del archivo
@@ -17,7 +17,7 @@ class Token:
 # Esta clase define el lexer del parser
 class Lexer:
     def __init__(self, rules: List[Tuple[str, str]]):
-        self.reglas = [(regla, re.compile(pattern)) for regla, pattern in rules]
+        self.rules = [(token_type, re.compile(pattern)) for token_type, pattern in rules]
         self.espacio= re.compile(r'\s+')
     
     def tokenize(self, text:str) -> List[Token]:
@@ -33,9 +33,13 @@ class Lexer:
                 match = pattern.match(text, pos)
                 if match:
                     value = match.group().lower() if token_type[0] == "b" else match.group()
-                    tokens.append(Token(token_type, match.group()))
+                    """tokens.append(Token(token_type, match.group()))
+                    pos = match.end()"""
+                    tokens.append(Token(token_type, value))
                     pos = match.end()
-            else:
+                    found_match = True
+            
+            if not found_match:
                 raise SyntaxError(f"Unexpected character: {text[pos]}")
                     
         return tokens
@@ -45,7 +49,6 @@ rules = [
     ("bEXECUTE", r'\b exec'), # Ejecutar
     ("bDEFINITION", r'\b(new var|new macro)'), #Definiciones de variables o macros
     ("bNOMBRE", r'\w'), # Nombres de variables o macros
-    
     ("LPAREN", r'\('),  # Paréntesis izquierdo
     ("RPAREN", r'\)'),  # Paréntesis derecho
     ("LBRACE", r'\{'),  # Llave izquierda
@@ -64,6 +67,16 @@ rules = [
     ("bDIRECTION", r'\b(left|right|back)\b'),  # Dirección
     ("bORIENTATION", r'\b(north|east|south|west)\b'),  # Orientación
     ("bCOMMANDSEXE", r'\b(turntomy|turntothe|walk|jump|drop|pick|grab|letgo|pop)\b'),  # Comandos de ejecución
-    ("bOTHERCOMMANDS", r'\b(moves|nop|safeexe)\b')  # Otros comandos
-    
+    ("bOTHERCOMMANDS", r'\b(moves|nop|safeexe)\b'),  # Otros comandos   
 ]
+
+lexer = Lexer(rules)
+
+# Example input
+input_text = "safeExe (walk(1) ) ;"
+
+# Tokenize the input
+tokens = lexer.tokenize(input_text)
+
+# Output the list of tokens
+print(tokens)
