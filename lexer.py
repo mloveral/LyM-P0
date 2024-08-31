@@ -21,6 +21,9 @@ class Lexer:
         self.espacio= re.compile(r'\s+')
     
     def tokenize(self, text:str) -> List[Token]:
+        
+        text = text.lower()
+        
         tokens = []
         pos = 0
         while pos < len(text):
@@ -33,8 +36,6 @@ class Lexer:
                 match = pattern.match(text, pos)
                 if match:
                     value = match.group().lower() if token_type[0] == "b" else match.group()
-                    """tokens.append(Token(token_type, match.group()))
-                    pos = match.end()"""
                     tokens.append(Token(token_type, value))
                     pos = match.end()
                     found_match = True
@@ -46,17 +47,6 @@ class Lexer:
                     
 # Reglas de producción para el lenguaje
 rules = [
-    ("bEXECUTE", r'\b exec'), # Ejecutar
-    ("bDEFINITION", r'\b(new var|new macro)'), #Definiciones de variables o macros
-    ("bNOMBRE", r'\w'), # Nombres de variables o macros
-    ("LPAREN", r'\('),  # Paréntesis izquierdo
-    ("RPAREN", r'\)'),  # Paréntesis derecho
-    ("LBRACE", r'\{'),  # Llave izquierda
-    ("RBRACE", r'\}'),  # Llave derecha
-    ("bMACRO", r'\b(new macro)'),  # Definición de macro
-    ("bVARIABLE", r'\b(new variable)'),  # Definición de variable
-    ("bNAME", r'\w+'),  # Nombres de variables o macros (modificado para capturar nombres completos)
-    ("NUMBER", r'\d+(\.\d*)?'),  # Valores numéricos
     ("bCONSTANTS", r'\b(size|myx|myy|mychips|myballoons|balloonshere|chipshere|roomforchips)\b'),  # Constantes
     ("bCONDITIONAL", r'\b(if|then|else|fi)\b'),  # Condicionales
     ("bLOOP", r'\b(do|od)\b'),  # Bucles
@@ -67,13 +57,23 @@ rules = [
     ("bDIRECTION", r'\b(left|right|back)\b'),  # Dirección
     ("bORIENTATION", r'\b(north|east|south|west)\b'),  # Orientación
     ("bCOMMANDSEXE", r'\b(turntomy|turntothe|walk|jump|drop|pick|grab|letgo|pop)\b'),  # Comandos de ejecución
-    ("bOTHERCOMMANDS", r'\b(moves|nop|safeexe)\b'),  # Otros comandos   
+    ("bOTHERCOMMANDS", r'\b(moves|nop|safeexe)\b'),  # Otros comandos 
+    ("bEXECUTE", r'\b exec'), # Ejecutar
+    ("bDEFINITION", r'\b(newvar|newmacro)'), #Definiciones de variables o macros
+    ("LPAREN", r'\('),  # Paréntesis izquierdo
+    ("RPAREN", r'\)'),  # Paréntesis derecho
+    ("LBRACE", r'\{'),  # Llave izquierda
+    ("RBRACE", r'\}'),  # Llave derecha
+    ("bMACRO", r'\b(new macro)'),  # Definición de macro
+    ("bVARIABLE", r'\b(new variable)'),  # Definición de variable
+    ("NUMBER", r'\d+(\.\d*)?'),  # Valores numéricos 
+    ("bNAME", r'\w+'),  # Nombres de variables o macros (modificado para capturar nombres completos) 
 ]
 
 lexer = Lexer(rules)
 
 # Example input
-input_text = "safeExe (walk(1) ) ;"
+input_text = "grab"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text)
