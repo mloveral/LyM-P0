@@ -47,6 +47,10 @@ class Lexer:
                     
 # Reglas de producción para el lenguaje
 rules = [
+    ("LPAREN", r'\('),  # Paréntesis izquierdo
+    ("RPAREN", r'\)'),  # Paréntesis derecho
+    ("LBRACE", r'\{'),  # Llave izquierda
+    ("RBRACE", r'\}'),  # Llave derecha
     ("bCONSTANTS", r'\b(size|myx|myy|mychips|myballoons|balloonshere|chipshere|roomforchips)\b'),  # Constantes
     ("bCONDITIONAL", r'\b(if|then|else|fi)\b'),  # Condicionales
     ("bLOOP", r'\b(do|od)\b'),  # Bucles
@@ -60,10 +64,6 @@ rules = [
     ("bOTHERCOMMANDS", r'\b(moves|nop|safeexe)\b'),  # Otros comandos 
     ("bEXECUTE", r'\b exec'), # Ejecutar
     ("bDEFINITION", r'\b(newvar|newmacro)'), #Definiciones de variables o macros
-    ("LPAREN", r'\('),  # Paréntesis izquierdo
-    ("RPAREN", r'\)'),  # Paréntesis derecho
-    ("LBRACE", r'\{'),  # Llave izquierda
-    ("RBRACE", r'\}'),  # Llave derecha
     ("bMACRO", r'\b(new macro)'),  # Definición de macro
     ("bVARIABLE", r'\b(new variable)'),  # Definición de variable
     ("NUMBER", r'\d+(\.\d*)?'),  # Valores numéricos 
@@ -73,7 +73,7 @@ rules = [
 lexer = Lexer(rules)
 
 # Example input
-input_text = "grab"
+input_text = "{while not zero ?( rooomForChips )"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text)
