@@ -45,7 +45,7 @@ class Lexer:
                     
         return tokens
                     
-# Reglas de producción para el lenguaje
+# Reglas para formar tokens
 rules = [
     ("LPAREN", r'\('),  # Paréntesis izquierdo
     ("RPAREN", r'\)'),  # Paréntesis derecho
@@ -62,10 +62,9 @@ rules = [
     ("bORIENTATION", r'\b(north|east|south|west)\b'),  # Orientación
     ("bCOMMANDSEXE", r'\b(turntomy|turntothe|walk|jump|drop|pick|grab|letgo|pop)\b'),  # Comandos de ejecución
     ("bOTHERCOMMANDS", r'\b(moves|nop|safeexe)\b'),  # Otros comandos 
-    ("bEXECUTE", r'\b exec'), # Ejecutar
-    ("bDEFINITION", r'\b(newvar|newmacro)'), #Definiciones de variables o macros
-    ("bMACRO", r'\b(new macro)'),  # Definición de macro
-    ("bVARIABLE", r'\b(new variable)'),  # Definición de variable
+    ("bEXECUTE", r'\b exec\b'), # Ejecutar
+    ("bMACRO", r'\b(new macro)\b'),  # Definición de macro
+    ("bVARIABLE", r'\b(new variable)\b'),  # Definición de variable
     ("NUMBER", r'\d+(\.\d*)?'),  # Valores numéricos 
     ("bNAME", r'\w+'),  # Nombres de variables o macros (modificado para capturar nombres completos) 
 ]
@@ -73,7 +72,7 @@ rules = [
 lexer = Lexer(rules)
 
 # Example input
-input_text = "safeExe (walk(1) ) ;"
+input_text = "safeExe (walk(1) ) ; New Macro { } exec1 New Variablew"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text)
