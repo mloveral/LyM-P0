@@ -192,31 +192,6 @@ def parse_O(tokens, pos):
     
     return pos+1, follows_rules
 
-def parse_n(tokens, pos):
-    if pos >= len(tokens)-2:
-        return pos, False
-    
-    #Se verifica que se empiece con un (
-    next_token = tokens[pos]
-    follows_rules = True
-    if next_token.type != "LPAREN":
-        follows_rules = False
-    pos += 1
-    
-    #Se verifica que el tipo del token sea una bNUMBER
-    next_token = tokens[pos]
-    if next_token.type != "bNUMBER":
-        follows_rules = False
-    
-    #Se verifica que termine con un (
-    pos += 1
-    next_token = tokens[pos]
-    follows_rules = True
-    if next_token.type != "RPAREN":
-        follows_rules = False
-    
-    return pos+1, follows_rules
-
 def parse_Ds(tokens, pos):
     if pos >= len(tokens)-2:
         return pos, False
@@ -340,5 +315,40 @@ def parse_new_macro(tokens, pos):
             next_token = tokens[pos]
             if next_token.type != "RBRACE":
                 follows_rules = False
+    else:
+        follows_rules = False
     
-    return pos, follows_rules
+    return pos+1, follows_rules
+
+def parse_new_variable(tokens, pos):
+    if pos >= len(tokens)-2:
+        return pos, False
+
+    follows_rules = True
+    
+    next_token = tokens[pos]
+    if next_token != "bNAME":
+        follows_rules = False
+        return pos, follows_rules
+    
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type!= "EQUALS":
+        follows_rules = False
+        return pos, follows_rules
+    
+    pos += 1
+    next_token = tokens[pos]
+    follows_rules = parse_n  
+
+    return pos+1, follows_rules
+
+def parse_n(token):
+    """
+    Parsea los posibles valores. Si el valor no es ninguno de los permitidos, se devuelve
+    que no sigue las reglas
+    """
+    if token.type != "bNUMBER" and token.type != "bNAME" and token.type != "bCONSTANTS":
+        return False
+    else:
+        return True
