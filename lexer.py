@@ -13,6 +13,9 @@ class Token:
     def __repr__(self):
         return f"{self.type}: {self.value}"
 
+    def returnDict(self):
+        return {'type': self.type, 'value': self.value}
+
 # Clase para analizar el texto y extraer tokens
 # Esta clase define el lexer del parser
 class Lexer:
@@ -57,6 +60,7 @@ rules = [
     ("bREPEAT", r'\b(rep|times)\b'),  # Repetición
     ("bCONDITION", r'\b(isblocked\?|isfacing\?|zero\?|not)\b'),  # Condiciones
     ("SEMICOLON", r'\;'),  # Punto y coma
+    ("COMA", r'\,'), # Comma
     ("bDIRECTIONS", r'\b(forward|right|backwards|left)\b'),  # Direcciones
     ("bDIRECTION", r'\b(left|right|back)\b'),  # Dirección
     ("bORIENTATION", r'\b(north|east|south|west)\b'),  # Orientación
