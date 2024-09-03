@@ -91,6 +91,20 @@ def parse_command(tokens, pos):
         elif next_token.value == "safeexe":
             #Caso en que sea un commando safeExe
             pos, follows_rules = parse_CM(tokens, pos+1)
+        elif next_token.value == "bCONDITIONAL":
+            #Caso en que sea un commando conditional
+            if next_token.value == "if":
+                pos, follows_rules = parse_conditional(tokens, pos+1)
+            else:
+                follows_rules = False
+        elif next_token.value == "bLOOP":
+            #Caso en que sea un commando loop
+            pos, follows_rules = parse_loop(tokens, pos+1)
+        elif next_token.value == "bREPEATS":
+            #Caso en que sea un commando repeats
+            pos, follows_rules = parse_repeat(tokens, pos+1)
+        else: 
+            follows_rules = False
         
         if pos >= len(tokens):
                 follows_rules = False
@@ -123,7 +137,13 @@ def parse_macro(tokens, pos):
     # verifica que estén separados por comas
     while follows_rules and pos < len(tokens)-1 and next_token.type != "RPAREN":
         next_token = tokens[pos]
-        if next_token.type != "bNAME" and next_token.type != "RPAREN":
+        if next_token.type == "bCONDITIONAL":
+            pos, follows_rules = parse_conditional(tokens, pos)
+        elif next_token.type == "bLOOP":
+            pos, follows_rules = parse_loop(tokens, pos+1)
+        elif next_token.type == "bREPEATS":
+            pos, follows_rules = parse_repeat(tokens, pos+1)
+        elif next_token.type != "bNAME" and next_token.type != "RPAREN":
             follows_rules = False
         else:
             pos += 1
@@ -352,3 +372,16 @@ def parse_n(token):
         return False
     else:
         return True
+
+def parse_conditional(tokens, pos):
+    if pos >= len(tokens):
+        return pos, False
+    next_token = tokens[pos]
+    follows_rules = True
+    if next_token.value == "not":
+        pos, follows_rules = parse_conditional(tokens, pos+1)
+    elif next_token.type != "LPAREN":
+        follows_rules = False
+    
+    pos, follows_rules = parse_condition(tokens, pos+1)
+
