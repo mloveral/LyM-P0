@@ -3,7 +3,7 @@ import lexer as lex
 lexer = lex.Lexer(lex.rules)
 
 # Example input
-input_text = "safeExe (walk(1) ) ; New Macro { } exec1 New Variablew"
+input_text = "NEW VARIABLE hola = 3"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text)
@@ -75,13 +75,13 @@ def parse_command(tokens, pos):
             pos, follows_rules = parse_macro(tokens, pos+1)
         elif next_token.value == "turntomy":
             #Caso en que sea un commando turnToMY
-            pos, follows_rules = parse_DCK(tokens, pos+1)
+            pos, follows_rules, last_DCK = parse_DCK(tokens, pos+1)
         elif next_token.value == "turntothe":
             #Caso en que sea un commando turnToThe
             pos, follows_rules =parse_O(tokens, pos+1)
         elif next_token.value == "walk" or next_token.value == "jump" or next_token.value == "drop" or next_token.value == "pick" or next_token.value == "grab" or next_token.value == "letgo" or next_token.value == "pop":
             #Caso en que sea un commando walk, jump, drop, pick, grab, letGo y pop
-            pos, follows_rules = parse_n(tokens, pos+1)
+            pos, follows_rules = parse_fun_n(tokens, pos+1)
         elif next_token.value == "moves":
             #Caso en que sea un commando moves
             pos, follows_rules = parse_Ds(tokens, pos+1)
@@ -99,10 +99,16 @@ def parse_command(tokens, pos):
                 follows_rules = False
         elif next_token.value == "bLOOP":
             #Caso en que sea un commando loop
-            pos, follows_rules = parse_loop(tokens, pos+1)
+            if next_token.value == "do":
+                pos, follows_rules = parse_conditional(tokens, pos+1)
+            else:
+                follows_rules = False
         elif next_token.value == "bREPEATS":
             #Caso en que sea un commando repeats
-            pos, follows_rules = parse_repeat(tokens, pos+1)
+            if next_token.value == "repeats":
+                pos, follows_rules = parse_conditional(tokens, pos+1)
+            else:
+                follows_rules = False
         else: 
             follows_rules = False
         
@@ -137,13 +143,7 @@ def parse_macro(tokens, pos):
     # verifica que estén separados por comas
     while follows_rules and pos < len(tokens)-1 and next_token.type != "RPAREN":
         next_token = tokens[pos]
-        if next_token.type == "bCONDITIONAL":
-            pos, follows_rules = parse_conditional(tokens, pos)
-        elif next_token.type == "bLOOP":
-            pos, follows_rules = parse_loop(tokens, pos+1)
-        elif next_token.type == "bREPEATS":
-            pos, follows_rules = parse_repeat(tokens, pos+1)
-        elif next_token.type != "bNAME" and next_token.type != "RPAREN":
+        if not parse_n(next_token) and next_token.type != "RPAREN":
             follows_rules = False
         else:
             pos += 1
@@ -164,6 +164,7 @@ def parse_macro(tokens, pos):
 
 def parse_DCK(tokens, pos):
     
+    last_DCK = False
     if pos >= len(tokens)-2:
         return pos, False
     
@@ -178,14 +179,16 @@ def parse_DCK(tokens, pos):
     next_token = tokens[pos]
     if next_token.type != "bDIRECTION":
         follows_rules = False
+    last_DCK = next_token.value
     pos += 1
+    
     
     #Se verifica que termine con un )
     next_token = tokens[pos]
     if next_token.type!= "RPAREN":
         follows_rules = False    
     
-    return pos+1, follows_rules
+    return pos+1, follows_rules, last_DCK
 
 def parse_O(tokens, pos):
     if pos >= len(tokens)-2:
@@ -210,7 +213,7 @@ def parse_O(tokens, pos):
     if next_token.type != "RPAREN":
         follows_rules = False
     
-    return pos+1, follows_rules
+    return pos+1, follows_rules, last_O
 
 def parse_Ds(tokens, pos):
     if pos >= len(tokens)-2:
@@ -286,6 +289,30 @@ def parse_CM(tokens, pos):
     
     return pos+1, follows_rules
 
+def parse_for_n():
+    if pos >= len(tokens)-2:
+        return pos, False
+    
+    #Se verifica que se empiece con un (
+    next_token = tokens[pos]
+    follows_rules = True
+    if next_token.type != "LPAREN":
+        follows_rules = False
+    pos += 1
+    
+    #Se verifica que el tipo del token sea una bNUMBER
+    next_token = tokens[pos]
+    if parse_n(next_token):
+        follows_rules = True
+
+    #Se verifica que termine con un (
+    pos += 1
+    next_token = tokens[pos]
+    follows_rules = True
+    if next_token.type != "RPAREN":
+        follows_rules = False
+    
+    return pos+1, follows_rules
 
 def parse_new_macro(tokens, pos):
     if pos >= len(tokens)-2:
@@ -308,7 +335,7 @@ def parse_new_macro(tokens, pos):
         next_token = tokens[pos]
         if next_token.type == "RPAREN":
             break
-        if next_token.type == "bNAME":
+        if parse_n(next_token):
             pos += 1
             next_token = tokens[pos]
             if next_token.type != "RPAREN" and next_token.type!= "COMMA":
@@ -328,6 +355,23 @@ def parse_new_macro(tokens, pos):
         next_token = tokens[pos]
         if next_token.type != "LBRACE":
             follows_rules = False
+        pos += 1
+        next_token = tokens[pos]
+        if next_token.type == "bCONDITIONAL":
+            if next_token.value == "if":
+                pos, follows_rules = parse_conditional(tokens, pos+1)
+            else:
+                follows_rules = False
+        elif next_token.type == "bLOOP":
+            if next_token.value == "do":
+                pos, follows_rules = parse_conditional(tokens, pos+1)
+            else:
+                follows_rules = False
+        elif next_token.type == "bREPEATS":
+            if next_token.value == "repeats":
+                pos, follows_rules = parse_conditional(tokens, pos+1)
+            else:
+                follows_rules = False
         else:
             pos, follows_rules = parse_command(tokens, pos)
         
@@ -384,4 +428,81 @@ def parse_conditional(tokens, pos):
         follows_rules = False
     
     pos, follows_rules = parse_condition(tokens, pos+1)
+    
+    if pos >= len(tokens) and follows_rules:
+        follows_rules = False
+    else:
+        next_token = tokens[pos]
+        if next_token.type != "RPAREN":
+            follows_rules = False
+    
+    return pos+1, follows_rules
 
+def parse_condition(tokens, pos):
+    if pos >= len(tokens)-3:
+        return pos, False
+    
+    next_token = tokens[pos]
+    follows_rules = True
+    if next_token.type != "bCONDITION":
+        follows_rules = False
+        return pos, follows_rules
+    
+    value = next_token.value
+    
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type!= "LPAREN":
+        follows_rules = False
+        return pos, follows_rules
+    
+    pos+= 1
+    next_token = tokens[pos]
+    if value == "zero?":
+        if not parse_n(next_token):
+            follows_rules = False
+            return pos, follows_rules
+    elif value == "isfacing?":
+        if next_token.type != "bORIENTATION":
+            follows_rules = False
+            return pos, follows_rules
+    elif value == "isblocked?":
+        if next_token.type!= "bDIRECTION":
+            follows_rules = False
+            return pos, follows_rules
+    
+    pos+= 1
+    next_token = tokens[pos]
+    if next_token.type!= "RPAREN":
+        follows_rules = False
+    
+    return pos+1, follows_rules
+
+def parse_loop(tokens, pos):
+
+    #Se verifica que se empiece con un (
+    next_token = tokens[pos]
+    follows_rules = True
+    if next_token.type != "LPAREN":
+        follows_rules = False
+    pos += 1
+    
+    if next_token.type == "bCONDITION":
+        if next_token.value == "isblocked\?":
+            pos =+ 1
+            pos_DCK, follows_rules_DCK, last_DCK = parse_DCK(tokens, pos)
+            if next_token.value != last_DCK:
+                    follows_rules = False
+        elif next_token.value == "isfacing\?":
+            pos =+ 1
+            pos_DCK, follows_rules_DCK, last_DCK = parse_DCK(tokens, pos)
+            if next_token.value != last_DCK:
+                    follows_rules = False
+            
+    
+    pos += 1
+    if next_token.type != "RPAREN":
+        follows_rules = False
+    pos += 1
+
+parse(tokens)
