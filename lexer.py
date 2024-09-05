@@ -67,7 +67,7 @@ rules = [
     ("bDIRECTION", r'\b(left|right|back)\b'),  # Dirección
     ("bORIENTATION", r'\b(north|east|south|west)\b'),  # Orientación
     ("bCOMMANDSEXE", r'\b(turntomy|turntothe|walk|jump|drop|pick|grab|letgo|pop|moves|nop|safeexe)\b'),  # Otros comandos 
-    ("bEXECUTE", r'\b exec\b'), # Ejecutar
+    ("bEXECUTE", r'\b(exec)\b'), # Ejecutar
     ("bMACRO", r'\b(new macro|newmacro)\b'),  # Definición de macro
     ("bVARIABLE", r'\b(new var|newvar)\b'),  # Definición de variable
     ("NUMBER", r'\d+(\.\d*)?'),  # Valores numéricos 

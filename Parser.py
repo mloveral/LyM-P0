@@ -9,7 +9,7 @@ def parse (tokens):
     variables = {}
     follows_rules = True
     while pos < len(tokens) and follows_rules:
-        if token1.type == "bEXECUTION":
+        if token1.type == "bEXECUTE":
             pos, follows_rules = parse_execution(tokens, pos+1, variables, macros)
         elif token1.type == "bMACRO":
             pos, follows_rules = parse_new_macro(tokens, pos+1, variables, macros)
@@ -28,7 +28,7 @@ def parse_execution (tokens, pos, variables, macros):
         return pos, False
     
     next_token = tokens[pos]
-    if next_token.type == "LBBRACE":
+    if next_token.type == "LBRACE":
         pos, follows_rules = parse_command(tokens, pos+1, variables, macros)
         #Verifica que los comandos terminen con un }
         if pos < len(tokens): 
@@ -676,8 +676,10 @@ input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left
 
 input_text3 = "new macro diego(ganas, de, vivir, nulas) { nop; }"
 
+input_text4 = "exec{nop;}"
+
 # Tokenize the input
-tokens = lexer.tokenize(input_text3)
+tokens = lexer.tokenize(input_text4)
 
 print(tokens)
 parse(tokens)    
