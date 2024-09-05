@@ -66,11 +66,10 @@ rules = [
     ("bDIRECTIONS", r'\b(forward|right|backwards|left)\b'),  # Direcciones
     ("bDIRECTION", r'\b(left|right|back)\b'),  # Dirección
     ("bORIENTATION", r'\b(north|east|south|west)\b'),  # Orientación
-    ("bCOMMANDSEXE", r'\b(turntomy|turntothe|walk|jump|drop|pick|grab|letgo|pop)\b'),  # Comandos de ejecución
-    ("bOTHERCOMMANDS", r'\b(moves|nop|safeexe)\b'),  # Otros comandos 
+    ("bCOMMANDSEXE", r'\b(turntomy|turntothe|walk|jump|drop|pick|grab|letgo|pop|moves|nop|safeexe)\b'),  # Otros comandos 
     ("bEXECUTE", r'\b exec\b'), # Ejecutar
     ("bMACRO", r'\b(new macro|newmacro)\b'),  # Definición de macro
-    ("bVARIABLE", r'\b(new variable|newvariable)\b'),  # Definición de variable
+    ("bVARIABLE", r'\b(new var|newvar)\b'),  # Definición de variable
     ("NUMBER", r'\d+(\.\d*)?'),  # Valores numéricos 
     ("bNAME", r'\w+'),  # Nombres de variables o macros (modificado para capturar nombres completos) 
 ]
@@ -81,7 +80,7 @@ lexer = Lexer(rules)
 input_text = "safeExe (walk(1) ) ; New Macro { } exec1 New Variable isblocked?"
 
 # Tokenize the input
-tokens = lexer.tokenize(input_text)
+#tokens = lexer.tokenize(input_text)
 
 # Output the list of tokens
 #print(tokens)

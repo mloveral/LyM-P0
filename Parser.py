@@ -1,28 +1,20 @@
 import lexer as lex
 
-lexer = lex.Lexer(lex.rules)
-
-# Example input
-input_text = "NEW VARIABLE hola = 3;"
-
-# Tokenize the input
-tokens = lexer.tokenize(input_text)
-
-print(tokens)
-
 def parse (tokens):
     pos = 0
     #Lista de diccionarios con los nombres de los macros y los parametros que recibe
     token1 = tokens[pos]
     t_type = token1.type
+    macros = {}
+    variables = {}
     follows_rules = True
     while pos < len(tokens) and follows_rules:
         if token1.type == "bEXECUTION":
-            pos, follows_rules = parse(tokens, pos+1)
+            pos, follows_rules = parse_execution(tokens, pos+1, variables, macros)
         elif token1.type == "bMACRO":
-            pos, follows_rules = parse_new_macro(tokens, pos+1)
+            pos, follows_rules = parse_new_macro(tokens, pos+1, variables, macros)
         elif token1.type == "bVARIABLE":
-            pos, follows_rules = parse_new_variable(tokens, pos+1)
+            pos, follows_rules = parse_new_variable(tokens, pos+1, variables)
         else:
             follows_rules = False
     
@@ -31,13 +23,13 @@ def parse (tokens):
     else:
         print("The received program does not follow the grammar rules")
 
-def parse_execution (tokens, pos):
+def parse_execution (tokens, pos, variables, macros):
     if pos >= len(tokens):
         return pos, False
     
     next_token = tokens[pos]
     if next_token.type == "LBBRACE":
-        pos, follows_rules = parse_command(tokens, pos+1)
+        pos, follows_rules = parse_command(tokens, pos+1, variables, macros)
         #Verifica que los comandos terminen con un }
         if pos < len(tokens): 
             next_token = tokens[pos]
@@ -52,7 +44,7 @@ def parse_execution (tokens, pos):
     
     return pos+1, follows_rules
 
-def parse_command(tokens, pos):
+def parse_command(tokens, pos, variables, macros):
     if pos >= len(tokens):
         return pos, False
     
@@ -75,7 +67,7 @@ def parse_command(tokens, pos):
 
         if next_token.type == "bNAME":
             #Mira el caso de que el command sea un macro
-            pos, follows_rules = parse_macro(tokens, pos+1)
+            pos, follows_rules = parse_macro(tokens, pos, macros)
         elif next_token.value == "turntomy":
             #Caso en que sea un commando turnToMY
             pos, follows_rules, last_DCK = parse_DCK(tokens, pos+1)
@@ -90,6 +82,7 @@ def parse_command(tokens, pos):
             pos, follows_rules = parse_Ds(tokens, pos+1)
         elif next_token.value == "nop":
             #Caso en que sea un commando nop
+            pos += 1
             pass
         elif next_token.value == "safeexe":
             #Caso en que sea un commando safeExe
@@ -119,39 +112,55 @@ def parse_command(tokens, pos):
                 follows_rules = False
         else:
             next_token = tokens[pos]
-            if next_token.type != "SEMI":
+            if next_token.type != "SEMICOLON":
                     follows_rules = False
                     return pos, follows_rules
+            else:
+                pos += 1
                     
-        pos += 1
 
     return pos, follows_rules
             
         
-def parse_macro(tokens, pos):
+def parse_macro(tokens, pos, macros):
     """
     Funcion que verifica si el macro invocado sigue las reglas de produccion
     bNAME'('PARAMS')' donde PARAMS deben ser de tipo bNAME
     """
-    if pos >= len(tokens)-1:
+    if pos >= len(tokens)-2:
         return pos, False
     
     next_token = tokens[pos]
     follows_rules = True
+    macro_name = next_token.value
+    
+    if macro_name not in macros:
+        return pos, False
+    
+    num_params = macros[macro_name]
+    
     if next_token.type != "LPAREN":
         follows_rules = False
     
     pos += 1
+    contador_param = 0
     # Verifica si los parametros dados son tipo bNAME. Si son más de uno, 
     # verifica que estén separados por comas
     while follows_rules and pos < len(tokens)-1 and next_token.type != "RPAREN":
         next_token = tokens[pos]
-        if not parse_n(next_token) and next_token.type != "RPAREN":
+        is_value = parse_n(next_token)
+        if not is_value and next_token.type != "RPAREN":
             follows_rules = False
         else:
+            if is_value:
+                contador_param += 1
+            if contador_param > num_params:
+                return pos, False
             pos += 1
             next_token = tokens[pos]
-            if next_token.type != "RPAREN" and next_token.type != "COMMA":
+            if next_token.type == "RPAREN":
+                break 
+            elif next_token.type != "COMMA":
                 follows_rules = False
         
         pos += 1
@@ -319,7 +328,7 @@ def parse_for_n():
     
     return pos+1, follows_rules
 
-def parse_new_macro(tokens, pos):
+def parse_new_macro(tokens, pos,variables, macros):
     if pos >= len(tokens)-2:
         return pos, False
 
@@ -328,6 +337,9 @@ def parse_new_macro(tokens, pos):
     if next_token.type != "bNAME":
         follows_rules = False
         return pos, follows_rules
+    
+    macro_name = next_token.value
+    num_params = 0
     
     pos += 1
     next_token = tokens[pos]
@@ -338,19 +350,21 @@ def parse_new_macro(tokens, pos):
     pos += 1
     while pos < len(tokens)-1 and follows_rules:
         next_token = tokens[pos]
-        if next_token.type == "RPAREN":
-            break
-        if parse_n(next_token):
+        
+        if next_token.type == "bNAME":
+            num_params+=1 #se agrega un parametro
             pos += 1
             next_token = tokens[pos]
-            if next_token.type != "RPAREN" and next_token.type!= "COMMA":
+            if next_token.type != "RPAREN" and next_token.type!= "COMA":
                 follows_rules = False
+            elif next_token.type == "RPAREN":
+                break
             else:
                 pos += 1
         else:
             follows_rules = False
     
-    if  follows_rules and pos <= len(tokens)-1 and next_token.type != "RPAREN":
+    if  follows_rules and pos <= len(tokens)-1:
         next_token = tokens[pos]
         if next_token.type != "RPAREN":
             follows_rules = False
@@ -361,37 +375,45 @@ def parse_new_macro(tokens, pos):
         if next_token.type != "LBRACE":
             follows_rules = False
         pos += 1
-        next_token = tokens[pos]
-        if next_token.type == "bCONDITIONAL":
-            if next_token.value == "if":
-                pos, follows_rules = parse_conditional(tokens, pos+1)
+        while follows_rules and pos < len(tokens):
+            next_token = tokens[pos]
+            if next_token.type == "bCONDITIONAL":
+                if next_token.value == "if":
+                    pos, follows_rules = parse_conditional(tokens, pos+1)
+                else:
+                    follows_rules = False
+            elif next_token.type == "bLOOP":
+                if next_token.value == "do":
+                    pos, follows_rules = parse_conditional(tokens, pos+1)
+                else:
+                    follows_rules = False
+            elif next_token.type == "bREPEATS":
+                if next_token.value == "repeats":
+                    pos, follows_rules = parse_conditional(tokens, pos+1)
+                else:
+                    follows_rules = False
+            elif next_token.type == "bCOMMANDSEXE":
+                pos, follows_rules = parse_command(tokens, pos, variables, macros)
+            elif next_token.type == "RBRACE":
+                break
             else:
                 follows_rules = False
-        elif next_token.type == "bLOOP":
-            if next_token.value == "do":
-                pos, follows_rules = parse_conditional(tokens, pos+1)
-            else:
-                follows_rules = False
-        elif next_token.type == "bREPEATS":
-            if next_token.value == "repeats":
-                pos, follows_rules = parse_conditional(tokens, pos+1)
-            else:
-                follows_rules = False
-        else:
-            pos, follows_rules = parse_command(tokens, pos)
+            pos += 1
         
         if follows_rules and pos <= len(tokens)-1:
             next_token = tokens[pos]
             if next_token.type != "RBRACE":
                 follows_rules = False
+            else:
+                macros[macro_name] = params
     else:
         follows_rules = False
     
     return pos+1, follows_rules
 
-def parse_new_variable(tokens, pos):
+def parse_new_variable(tokens, pos, variables):
     tokens_len = len(tokens)
-    if pos >= len(tokens)-3:
+    if pos >= len(tokens)-2:
         return pos, False
 
     follows_rules = True
@@ -400,6 +422,8 @@ def parse_new_variable(tokens, pos):
     if next_token.type != "bNAME":
         follows_rules = False
         return pos, follows_rules
+    
+    variable = next_token.value
     
     pos += 1
     next_token = tokens[pos]
@@ -412,10 +436,7 @@ def parse_new_variable(tokens, pos):
     follows_rules = parse_n
     
     if follows_rules:
-        pos += 1
-        next_token = tokens[pos]
-        if next_token.type != "SEMICOLON":
-            follows_rules = False
+        variables[variable] = next_token.value
 
     return pos+1, follows_rules
 
@@ -646,5 +667,17 @@ def parser_repeat(tokens, pos):
 
 
 #Prueba
+lexer = lex.Lexer(lex.rules)
 
+# Example input
+input_text1 = "NEW VAR hola = 3" #new variable
+
+input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left2=left Exec { if (isfacing?(north)) then {pop(two);}else{nop;} fi pop((2);) } EXEC { if not(isBlocked?(left ) ) then { turnToMy( left2 ) ; walk(balloonsHere) ; } else {nop;} fi } EXEC { safeExe (walk(1) ) ; }"
+
+input_text3 = "new macro diego(ganas, de, vivir, nulas) { nop; }"
+
+# Tokenize the input
+tokens = lexer.tokenize(input_text3)
+
+print(tokens)
 parse(tokens)    
