@@ -9,6 +9,7 @@ def parse (tokens):
     variables = {}
     follows_rules = True
     while pos < len(tokens) and follows_rules:
+        token1 = tokens[pos]
         if token1.type == "bEXECUTE":
             pos, follows_rules = parse_execution(tokens, pos+1, variables, macros)
         elif token1.type == "bMACRO":
@@ -146,7 +147,7 @@ def parse_macro(tokens, pos, variables, macros):
     contador_param = 0
     # Verifica si los parametros dados son tipo bNAME. Si son más de uno, 
     # verifica que estén separados por comas
-    while follows_rules and pos < len(tokens)-1 and next_token.type != "RPAREN":
+    while follows_rules and pos < len(tokens)-1:
         next_token = tokens[pos]
         is_value = parse_n(next_token, variables)
         if not is_value and next_token.type != "RPAREN":
@@ -394,10 +395,11 @@ def parse_new_macro(tokens, pos,variables, macros):
                     follows_rules = False
             elif next_token.type == "bCOMMANDSEXE":
                 pos, follows_rules = parse_command(tokens, pos, variables, macros)
-            elif next_token.type == "RBRACE":
-                break
-            else:
+            elif next_token.type != "RBRACE":
                 follows_rules = False
+            next_token = tokens[pos]
+            if next_token.type == "RBRACE":
+                break
             pos += 1
         
         if follows_rules and pos <= len(tokens)-1:
@@ -405,7 +407,7 @@ def parse_new_macro(tokens, pos,variables, macros):
             if next_token.type != "RBRACE":
                 follows_rules = False
             else:
-                macros[macro_name] = params
+                macros[macro_name] = num_params
     else:
         follows_rules = False
     
@@ -446,14 +448,15 @@ def parse_n(token, variables):
     que no sigue las reglas
     """
     if token.type == "bNAME":
+        #Verifica que si es una variable, que esta se haya declarado antes
         if token.value in variables:
             return True
         else:
             return False
-    elif token.type != "bNUMBER" and token.type != "bCONSTANTS":
-        return False
-    else:
+    elif token.type == "bNUMBER" or token.type == "bCONSTANTS":
         return True
+    else:
+        return False
 
 def parse_conditional(tokens, pos):
     if pos >= len(tokens):
@@ -681,7 +684,7 @@ input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left
 
 input_text3 = "new macro diego(ganas, de, vivir, nulas) { nop; }"
 
-input_text4 = "exec{nop;}"
+input_text4 = "new macro diego(ganas, de, vivir, nulas) { nop; } exec{nop;}"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text4)
