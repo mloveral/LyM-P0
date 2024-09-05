@@ -63,8 +63,7 @@ rules = [
     ("SEMICOLON", r'\;'),  # Punto y coma
     ("COMA", r'\,'), # Comma
     ("EQUALS", r'\='), # Equals
-    ("bDIRECTIONS", r'\b(forward|right|backwards|left)\b'),  # Direcciones
-    ("bDIRECTION", r'\b(left|right|back)\b'),  # Dirección
+    ("bDIRECTIONS", r'\b(forward|right|backwards|left|back)\b'),  # Direcciones
     ("bORIENTATION", r'\b(north|east|south|west)\b'),  # Orientación
     ("bCOMMANDSEXE", r'\b(turntomy|turntothe|walk|jump|drop|pick|grab|letgo|pop|moves|nop|safeexe)\b'),  # Otros comandos 
     ("bEXECUTE", r'\b(exec)\b'), # Ejecutar

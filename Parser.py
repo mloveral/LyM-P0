@@ -87,9 +87,6 @@ def parse_command(tokens, pos, variables, macros):
             pos, follows_rules = parse_macro(tokens, pos, variables, macros)
         elif next_token.value == "turntomy":
             #Caso en que sea un commando turnToMY
-            hay_question, pos = check_question_mark(tokens, pos)
-            if not hay_question:
-                return pos, False
             pos, follows_rules, last_DCK = parse_DCK(tokens, pos+1)
         elif next_token.value == "turntothe":
             #Caso en que sea un commando turnToThe
@@ -139,19 +136,7 @@ def parse_command(tokens, pos, variables, macros):
                 pos += 1
                     
 
-    return pos, follows_rules
-
-def check_question_mark(tokens, pos):
-    """
-    Funcion que verifica si el token es un signo de interrogacion
-    """
-    pos += 1
-    next_token = tokens[pos]
-    if next_token.type == "QUESTIONMARK":
-        return True, pos
-    else:
-        return False, pos
-            
+    return pos, follows_rules            
         
 def parse_macro(tokens, pos, variables, macros):
     """
@@ -221,6 +206,7 @@ def parse_DCK(tokens, pos):
     :return: Retorna la posicion del siguiente token y un bool que indica si se siguen las reglas
     """
     last_DCK = False
+    dir_validas = ["left", "right", "back"]
     if pos >= len(tokens)-2:
         return pos, False
     
@@ -233,7 +219,7 @@ def parse_DCK(tokens, pos):
     
     next_token = tokens[pos]
     #Se verifica que el tipo del token sea una bDIRECTION
-    if next_token.type == "bDIRECTION":
+    if next_token.type == "bDIRECTIONS" and next_token.value in dir_validas:
         # Actualiza last_O si el token es de tipo bCOMMAND
         last_DCK = next_token.value
     else:
@@ -525,8 +511,25 @@ def parse_conditional(tokens, pos):
     
     return pos+1, follows_rules
 
+def check_question_mark(tokens, pos):
+    """
+    Funcion que verifica si el token es un signo de interrogacion
+    """
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type == "QUESTIONMARK":
+        return True, pos
+    else:
+        return False, pos
+
+
 def parse_condition(tokens, pos):
     if pos >= len(tokens)-3:
+        return pos, False
+    
+    next_token = tokens[pos]
+    hay_question, pos = check_question_mark(tokens, pos)
+    if not hay_question:
         return pos, False
     
     next_token = tokens[pos]
@@ -730,7 +733,7 @@ input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left
 
 input_text3 = "new macro diego(ganas, de, vivir, nulas) { nop; }"
 
-input_text4 = "new var hola = 3 new macro diego(ganas, de, vivir, nulas) { nop; } exec{diego(1,2,3, 4);}"
+input_text4 = "new var hola = 3 new macro diego(ganas, de, vivir, nulas) { nop; } exec{turnToMy?(left);}"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text4)
