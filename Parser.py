@@ -67,7 +67,7 @@ def parse_command(tokens, pos, variables, macros):
 
         if next_token.type == "bNAME":
             #Mira el caso de que el command sea un macro
-            pos, follows_rules = parse_macro(tokens, pos, macros)
+            pos, follows_rules = parse_macro(tokens, pos, variables, macros)
         elif next_token.value == "turntomy":
             #Caso en que sea un commando turnToMY
             pos, follows_rules, last_DCK = parse_DCK(tokens, pos+1)
@@ -122,10 +122,10 @@ def parse_command(tokens, pos, variables, macros):
     return pos, follows_rules
             
         
-def parse_macro(tokens, pos, macros):
+def parse_macro(tokens, pos, variables, macros):
     """
     Funcion que verifica si el macro invocado sigue las reglas de produccion
-    bNAME'('PARAMS')' donde PARAMS deben ser de tipo bNAME
+    bNAME'('PARAMS')' donde PARAMS deben ser de tipo value
     """
     if pos >= len(tokens)-2:
         return pos, False
@@ -148,7 +148,7 @@ def parse_macro(tokens, pos, macros):
     # verifica que estén separados por comas
     while follows_rules and pos < len(tokens)-1 and next_token.type != "RPAREN":
         next_token = tokens[pos]
-        is_value = parse_n(next_token)
+        is_value = parse_n(next_token, variables)
         if not is_value and next_token.type != "RPAREN":
             follows_rules = False
         else:
@@ -440,12 +440,17 @@ def parse_new_variable(tokens, pos, variables):
 
     return pos+1, follows_rules
 
-def parse_n(token):
+def parse_n(token, variables):
     """
     Parsea los posibles valores. Si el valor no es ninguno de los permitidos, se devuelve
     que no sigue las reglas
     """
-    if token.type != "bNUMBER" and token.type != "bNAME" and token.type != "bCONSTANTS":
+    if token.type == "bNAME":
+        if token.value in variables:
+            return True
+        else:
+            return False
+    elif token.type != "bNUMBER" and token.type != "bCONSTANTS":
         return False
     else:
         return True
