@@ -176,13 +176,13 @@ def parse_DCK(tokens, pos):
     pos += 1
     
     #Se verifica que el tipo del token sea una bDIRECTION
-    next_token = tokens[pos]
-    if next_token.type != "bDIRECTION":
+    if next_token.type == "bDIRECTION":
+        # Actualiza last_O si el token es de tipo bCOMMAND
+        last_DCK = next_token.value
+    else:
         follows_rules = False
-    last_DCK = next_token.value
+    
     pos += 1
-    
-    
     #Se verifica que termine con un )
     next_token = tokens[pos]
     if next_token.type!= "RPAREN":
@@ -202,8 +202,10 @@ def parse_O(tokens, pos):
     pos += 1
     
     #Se verifica que el tipo del token sea una bORIENTATION
-    next_token = tokens[pos]
-    if next_token.type != "bORIENTATION":
+    if next_token.type == "bORIENTATION":
+        # Actualiza last_O si el token es de tipo bCOMMAND
+        last_O = next_token.value
+    else:
         follows_rules = False
     
     #Se verifica que termine con un )
@@ -478,31 +480,140 @@ def parse_condition(tokens, pos):
     
     return pos+1, follows_rules
 
-def parse_loop(tokens, pos):
+def parser_loop(tokens, pos):
 
-    #Se verifica que se empiece con un (
     next_token = tokens[pos]
     follows_rules = True
+    
+    # Se verifica que se empiece con un do
+    if next_token.type != "bLOOP" and next_token.value != "do":
+        follows_rules = False
+    pos += 1
+    
+    # se verifica que le siga un (
+    next_token = tokens[pos]
     if next_token.type != "LPAREN":
         follows_rules = False
     pos += 1
     
+    # despues del parentesis tiene que ir una condicción
+    next_token = tokens[pos]
     if next_token.type == "bCONDITION":
+        
+        # se verifica que condición es y si es True or False para poder seguir corriendo el programa
+        # tambien se verifica que las especificaciones de las condiciones esten entre parentesis
         if next_token.value == "isblocked\?":
-            pos =+ 1
-            pos_DCK, follows_rules_DCK, last_DCK = parse_DCK(tokens, pos)
-            if next_token.value != last_DCK:
-                    follows_rules = False
-        elif next_token.value == "isfacing\?":
-            pos =+ 1
+            pos += 1
+            next_token = tokens[pos]
+            if next_token.type != "LPAREN":
+                follows_rules = False
+                
+            pos += 1
+            next_token = tokens[pos]
             pos_DCK, follows_rules_DCK, last_DCK = parse_DCK(tokens, pos)
             if next_token.value != last_DCK:
                     follows_rules = False
             
-    
-    pos += 1
-    if next_token.type != "RPAREN":
-        follows_rules = False
-    pos += 1
+            pos += 1
+            next_token = tokens[pos]
+            if next_token.type != "RPAREN":
+                follows_rules = False
+        
+        elif next_token.value == "isfacing\?":
+            pos += 1
+            next_token = tokens[pos]
+            if next_token.type != "LPAREN":
+                follows_rules = False
+            
+            pos += 1
+            next_token = tokens[pos]
+            pos_O, follows_rules_O, last_O = parse_O(tokens, pos)
+            if next_token.value != last_O:
+                    follows_rules = False
+            
+            pos += 1
+            next_token = tokens[pos]
+            if next_token.type != "RPAREN":
+                follows_rules = False
+            
+            
+        elif next_token.value == "zero\?":
+            pos += 1
+            next_token = tokens[pos]
+            if next_token.type != "LPAREN":
+                follows_rules = False
+                        
+            pos += 1
+            next_token = tokens[pos]
+            if next_token.value == 0:
+                    follows_rules = False
+            
+            pos += 1
+            next_token = tokens[pos]
+            if next_token.type != "RPAREN":
+                follows_rules = False
+            
+        elif next_token.value == "not":
+            pos += 1
+            next_token = tokens[pos]
+            if next_token.type != "LPAREN":
+                follows_rules = False
+            
+            pos += 1
+            next_token = tokens[pos]
+            if next_token.value == True:
+                    follows_rules = False
 
-parse(tokens)
+            pos += 1
+            next_token = tokens[pos]
+            if next_token.type != "RPAREN":
+                follows_rules = False
+        
+    # se verifica que despues de las condiciones se cierre el parentesis inicial
+    pos+= 1
+    next_token = tokens[pos]
+    if next_token.type!= "RPAREN":
+        follows_rules = False
+    
+    # se revisa que despues se encuentre un bloque
+    pos += 1
+    next_token = tokens[pos] 
+    if not parse_execution(tokens, pos):
+        follows_rules = False
+    
+    # se verifica que se termine la instruccion con un od
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type != "bLOOP" and next_token.value != "od":
+        follows_rules = False
+        
+    return pos+1, follows_rules
+        
+def parser_repeat(tokens, pos):
+    next_token = tokens[pos]
+    follows_rules = True
+    
+    #Verificamos que empiece con un repeat
+    if next_token.type != "bREPEAT" and next_token.value != "repeat":
+        follows_rules = False
+    
+    #Verificamos que lo que le sigue sea un valor n
+    pos += 1
+    next_token = tokens[pos]
+    if not parse_n(next_token):
+        follows_rules = False
+    
+    #Verificamos que en le siguiente haya un repeat
+    pos += 1
+    next_token = tokens[pos] 
+    if next_token.type != "bREPEAT" and next_token.value != "times":
+        follows_rules = False
+    
+    #Verificamos que despues de ese repeat haya un bloque
+    pos += 1
+    next_token = tokens[pos] 
+    if not parse_execution(tokens, pos):
+        follows_rules = False
+    
+    return pos+1, follows_rules
+    
