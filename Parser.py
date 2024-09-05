@@ -260,6 +260,39 @@ def parse_O(tokens, pos):
     
     return pos+1, follows_rules, last_O
 
+def parse_fun_n(tokens, pos, variables):
+    """ Parsea las funciones que reciben como paramentro un valor n
+
+    :param tokens: Los tokens generados por el lexer a partir del texto
+    :type tokens: list
+    :param pos: La posicion del current token en la lista de tokens
+    :type pos: int
+    :param variables: Un diccionario donde las llaves son los nombres de las
+                        variables declaradas y su valor son los valores asociados
+    :return: Retorna la posicion del siguiente token y un bool que indica si se siguen las reglas
+    """
+    if pos >= len(tokens)-2:
+        return pos, False
+    
+    follows_rules = true
+    
+    next_token = tokens[pos]
+    if next_token.type != "LPAREN":
+        return pos, False
+    
+    pos += 1
+    next_token = tokens[pos]
+    is_value = parse_n(next_token, variables)
+    if not is_value:
+        return pos, False
+    
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type!= "RPAREN":
+        follows_rules = False
+    
+    return pos+1, follows_rules
+
 def parse_Ds(tokens, pos):
     if pos >= len(tokens)-2:
         return pos, False
