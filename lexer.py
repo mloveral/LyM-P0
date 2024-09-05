@@ -58,7 +58,8 @@ rules = [
     ("bCONDITIONAL", r'\b(if|then|else|fi)\b'),  # Condicionales
     ("bLOOP", r'\b(do|od)\b'),  # Bucles
     ("bREPEAT", r'\b(rep|times)\b'),  # Repetición
-    ("bCONDITION", r'\b(isblocked\?|isfacing\?|zero\?|not)\b'),  # Condiciones
+    ("bCONDITION", r'\b(isblocked|isfacing|zero|not)\b'),  # Condiciones
+    ("QUESTIONMARK", r'\?'),
     ("SEMICOLON", r'\;'),  # Punto y coma
     ("COMA", r'\,'), # Comma
     ("EQUALS", r'\='), # Equals
@@ -77,10 +78,10 @@ rules = [
 lexer = Lexer(rules)
 
 # Example input
-input_text = "safeExe (walk(1) ) ; New Macro { } exec1 New Variablew"
+input_text = "safeExe (walk(1) ) ; New Macro { } exec1 New Variable isblocked?"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text)
 
 # Output the list of tokens
-print(tokens)
+#print(tokens)
