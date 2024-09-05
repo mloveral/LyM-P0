@@ -32,7 +32,7 @@ def parse_execution (tokens, pos, variables, macros):
     if next_token.type == "LBRACE":
         pos, follows_rules = parse_command(tokens, pos+1, variables, macros)
         #Verifica que los comandos terminen con un }
-        if pos < len(tokens): 
+        if pos < len(tokens) and follows_rules: 
             next_token = tokens[pos]
             if next_token.type != "RBRACE":
                 follows_rules = False
@@ -46,7 +46,23 @@ def parse_execution (tokens, pos, variables, macros):
     return pos+1, follows_rules
 
 def parse_command(tokens, pos, variables, macros):
-    if pos >= len(tokens):
+    """Parsea un comando de acuerdo con la gramática del lenguaje
+
+    :param tokens: Los tokens generados por el lexer a partir del texto
+    :type tokens: list
+    :param pos: La posicion del current token en la lista de tokens
+    :type pos: int
+    :param variables: Un diccionario que tiene como llaves los nombres de las
+                        variables y como valores los valores de las variables
+    :type variables: dict
+    :param macros: Un diccionario que tiene como llaves los nombres de los macros
+                    y como valores una tupla con el número de parametros que recibe y
+                    una lista de los comandos a ejecutar
+    :type macros: _type_
+    :return: _description_
+    :rtype: _type_
+    """
+    if pos >= len(tokens)-1:
         return pos, False
     
     next_token = tokens[pos]
@@ -71,6 +87,9 @@ def parse_command(tokens, pos, variables, macros):
             pos, follows_rules = parse_macro(tokens, pos, variables, macros)
         elif next_token.value == "turntomy":
             #Caso en que sea un commando turnToMY
+            hay_question, pos = check_question_mark(tokens, pos)
+            if not hay_question:
+                return pos, False
             pos, follows_rules, last_DCK = parse_DCK(tokens, pos+1)
         elif next_token.value == "turntothe":
             #Caso en que sea un commando turnToThe
@@ -121,6 +140,17 @@ def parse_command(tokens, pos, variables, macros):
                     
 
     return pos, follows_rules
+
+def check_question_mark(tokens, pos):
+    """
+    Funcion que verifica si el token es un signo de interrogacion
+    """
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type == "QUESTIONMARK":
+        return True, pos
+    else:
+        return False, pos
             
         
 def parse_macro(tokens, pos, variables, macros):
@@ -138,7 +168,10 @@ def parse_macro(tokens, pos, variables, macros):
     if macro_name not in macros:
         return pos, False
     
-    num_params = macros[macro_name]
+    num_params = macros[macro_name][0]
+    
+    pos+=1
+    next_token = tokens[pos]
     
     if next_token.type != "LPAREN":
         follows_rules = False
@@ -160,8 +193,10 @@ def parse_macro(tokens, pos, variables, macros):
             pos += 1
             next_token = tokens[pos]
             if next_token.type == "RPAREN":
+                if contador_param != num_params:
+                    follows_rules = False
                 break 
-            elif next_token.type != "COMMA":
+            elif next_token.type != "COMA":
                 follows_rules = False
         
         pos += 1
@@ -176,7 +211,15 @@ def parse_macro(tokens, pos, variables, macros):
 
 
 def parse_DCK(tokens, pos):
-    
+    """ Parsea una direccion para el comando turnToMy(D), donde D
+    puede ser left, right, o back
+
+    :param tokens: Los tokens generados por el lexer a partir del texto
+    :type tokens: list
+    :param pos: La posicion del current token en la lista de tokens
+    :type pos: int
+    :return: Retorna la posicion del siguiente token y un bool que indica si se siguen las reglas
+    """
     last_DCK = False
     if pos >= len(tokens)-2:
         return pos, False
@@ -188,6 +231,7 @@ def parse_DCK(tokens, pos):
         follows_rules = False
     pos += 1
     
+    next_token = tokens[pos]
     #Se verifica que el tipo del token sea una bDIRECTION
     if next_token.type == "bDIRECTION":
         # Actualiza last_O si el token es de tipo bCOMMAND
@@ -341,6 +385,7 @@ def parse_new_macro(tokens, pos,variables, macros):
     
     macro_name = next_token.value
     num_params = 0
+    commands = []
     
     pos += 1
     next_token = tokens[pos]
@@ -394,6 +439,7 @@ def parse_new_macro(tokens, pos,variables, macros):
                 else:
                     follows_rules = False
             elif next_token.type == "bCOMMANDSEXE":
+                
                 pos, follows_rules = parse_command(tokens, pos, variables, macros)
             elif next_token.type != "RBRACE":
                 follows_rules = False
@@ -407,7 +453,7 @@ def parse_new_macro(tokens, pos,variables, macros):
             if next_token.type != "RBRACE":
                 follows_rules = False
             else:
-                macros[macro_name] = num_params
+                macros[macro_name] = (num_params, commands)
     else:
         follows_rules = False
     
@@ -453,7 +499,7 @@ def parse_n(token, variables):
             return True
         else:
             return False
-    elif token.type == "bNUMBER" or token.type == "bCONSTANTS":
+    elif token.type == "NUMBER" or token.type == "bCONSTANTS":
         return True
     else:
         return False
@@ -684,7 +730,7 @@ input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left
 
 input_text3 = "new macro diego(ganas, de, vivir, nulas) { nop; }"
 
-input_text4 = "new macro diego(ganas, de, vivir, nulas) { nop; } exec{nop;}"
+input_text4 = "new var hola = 3 new macro diego(ganas, de, vivir, nulas) { nop; } exec{diego(1,2,3, 4);}"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text4)
