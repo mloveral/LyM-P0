@@ -574,7 +574,7 @@ def parse_condition(tokens, pos):
         return pos, follows_rules
     
     value = next_token.value
-    dir_validas = [left, right, front, back]
+    dir_validas = ["left", "right", "front", "back"]
     
     pos += 1    
     next_token = tokens[pos]
