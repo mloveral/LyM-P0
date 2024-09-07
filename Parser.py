@@ -455,12 +455,12 @@ def parse_new_macro(tokens, pos,variables, macros):
                     follows_rules = False
             elif next_token.type == "bLOOP":
                 if next_token.value == "do":
-                    pos, follows_rules = parse_conditional(tokens, pos+1)
+                    pos, follows_rules = parser_loop(tokens, pos+1)
                 else:
                     follows_rules = False
             elif next_token.type == "bREPEATS":
                 if next_token.value == "repeats":
-                    pos, follows_rules = parse_conditional(tokens, pos+1)
+                    pos, follows_rules = parser_repeat(tokens, pos+1)
                 else:
                     follows_rules = False
             elif next_token.type == "bCOMMANDSEXE":
@@ -710,8 +710,8 @@ def parser_loop(tokens, pos):
             
             pos += 1
             next_token = tokens[pos]
-            pos_O, follows_rules_O, last_O = parse_O(tokens, pos)
-            if follows_rules_O != last_O:
+            pos_O, follows_rules_O = parse_O(tokens, pos)
+            if not follows_rules_O:
                     follows_rules = False
             
             pos += 1
@@ -817,7 +817,7 @@ input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left
 
 input_text3 = "new macro diego(ganas, de, vivir) { nop; }"
 
-input_text4 = "do (not(isBlocked?(left)) {walk(1); drop(1)} od;"
+input_text4 = "do (isBlocked?(left)) { nop; } od;"
 
 input_text5 = "EXEC  {if not(isblocked?(left)) then  { turnToMy(left); walk(1); } else {nop;}  fi;}"
 
