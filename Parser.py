@@ -114,7 +114,7 @@ def parse_command(tokens, pos, variables, macros):
         elif next_token.value == "bLOOP":
             #Caso en que sea un commando loop
             if next_token.value == "do":
-                pos, follows_rules = parse_conditional(tokens, pos+1)
+                pos, follows_rules = parser_loop(tokens, pos+1)
             else:
                 follows_rules = False
         elif next_token.value == "bREPEATS":
@@ -618,11 +618,6 @@ def parser_loop(tokens, pos):
     next_token = tokens[pos]
     follows_rules = True
     
-    # Se verifica que se empiece con un do
-    if next_token.type != "bLOOP" and next_token.value != "do":
-        follows_rules = False
-    pos += 1
-    
     # se verifica que le siga un (
     next_token = tokens[pos]
     if next_token.type != "LPAREN":
@@ -636,6 +631,7 @@ def parser_loop(tokens, pos):
         # se verifica que condición es y si es True or False para poder seguir corriendo el programa
         # tambien se verifica que las especificaciones de las condiciones esten entre parentesis
         if next_token.value == "isblocked":
+            
             pos += 1
             next_token = tokens[pos]
             if next_token.type != "QUESTIONMARK":
