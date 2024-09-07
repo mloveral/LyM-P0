@@ -66,7 +66,7 @@ def parse_command(tokens, pos, variables, macros):
     
     next_token = tokens[pos]
     follows_rules = True
-    valid_commands = ["bCOMMANDSEXE", "bNAME", "bCONDINTIONAL", "bLOOP", "bREPEATS"]
+    valid_commands = ["bCOMMANDSEXE", "bNAME", "bCONDITIONAL", "bLOOP", "bREPEATS"]
     # Si no se recibe ningun comando (ni siquiera un nop), se dice que no sigue las reglas
     if next_token.type not in valid_commands :
         follows_rules = False
@@ -79,7 +79,7 @@ def parse_command(tokens, pos, variables, macros):
             break
         
         #Si lo que sigue no es un comando ni un nombre, se declara que no sigue las reglas
-        if (next_token.type != "bCOMMANDSEXE" and next_token.type != "bNAME"):
+        if (next_token.type not in valid_commands):
             follows_rules = False
             return pos, follows_rules
 
