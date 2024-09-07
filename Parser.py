@@ -639,7 +639,7 @@ def parser_loop(tokens, pos):
                 
             pos += 1
             next_token = tokens[pos]
-            por_DCK, follows_rules_DCK = parse_DCK(tokens, pos)
+            pos_DCK, follows_rules_DCK = parse_DCK(tokens, pos)
             if not follows_rules_DCK:
                     follows_rules = False
             
@@ -717,7 +717,8 @@ def parser_loop(tokens, pos):
     # se revisa que despues se encuentre un bloque
     pos += 1
     next_token = tokens[pos] 
-    if not parse_execution(tokens, pos):
+    pos, follows_rules_CM = parse_command(tokens, pos)
+    if not follows_rules_CM:
         follows_rules = False
     
     # se verifica que se termine la instruccion con un od
@@ -767,7 +768,7 @@ input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left
 
 input_text3 = "new macro diego(ganas, de, vivir) { nop; }"
 
-input_text4 = "new var hola = 3 new macro diego(ganas, de, vivir) { nop; } exec{safeExe(pop(balloonsHere); jump(2););}"
+input_text4 = "do (isblocked?(left)) {walk(2); turnToThe(north); drop(1);} od; "
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text4)
