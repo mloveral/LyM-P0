@@ -105,19 +105,19 @@ def parse_command(tokens, pos, variables, macros):
         elif next_token.value == "safeexe":
             #Caso en que sea un commando safeExe
             pos, follows_rules = parse_CM(tokens, pos+1, variables, macros)
-        elif next_token.value == "bCONDITIONAL":
+        elif next_token.type == "bCONDITIONAL":
             #Caso en que sea un commando conditional
             if next_token.value == "if":
                 pos, follows_rules = parse_conditional(tokens, pos+1)
             else:
                 follows_rules = False
-        elif next_token.value == "bLOOP":
+        elif next_token.type == "bLOOP":
             #Caso en que sea un commando loop
             if next_token.value == "do":
                 pos, follows_rules = parser_loop(tokens, pos+1)
             else:
                 follows_rules = False
-        elif next_token.value == "bREPEATS":
+        elif next_token.type == "bREPEATS":
             #Caso en que sea un commando repeats
             if next_token.value == "repeats":
                 pos, follows_rules = parse_conditional(tokens, pos+1)
