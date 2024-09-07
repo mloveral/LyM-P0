@@ -66,8 +66,9 @@ def parse_command(tokens, pos, variables, macros):
     
     next_token = tokens[pos]
     follows_rules = True
+    valid_commands = ["bCOMMANDSEXE", "bNAME", "bCONDINTIONAL", "bLOOP", "bREPEATS"]
     # Si no se recibe ningun comando (ni siquiera un nop), se dice que no sigue las reglas
-    if next_token.type != "bCOMMANDSEXE" and next_token.type != "bNAME":
+    if next_token.type not in valid_commands :
         follows_rules = False
         return pos, follows_rules
     
@@ -529,8 +530,9 @@ def parse_n(token, variables):
         return False
 
 def parse_conditional(tokens, pos):
-    if pos >= len(tokens):
+    if pos >= len(tokens)-1:
         return pos, False
+    
     next_token = tokens[pos]
     follows_rules = True
     if next_token.value == "not":
@@ -562,12 +564,7 @@ def check_question_mark(tokens, pos):
 
 
 def parse_condition(tokens, pos):
-    if pos >= len(tokens)-3:
-        return pos, False
-    
-    next_token = tokens[pos]
-    hay_question, pos = check_question_mark(tokens, pos)
-    if not hay_question:
+    if pos >= len(tokens)-2:
         return pos, False
     
     next_token = tokens[pos]
@@ -577,6 +574,14 @@ def parse_condition(tokens, pos):
         return pos, follows_rules
     
     value = next_token.value
+    dir_validas = [left, right, front, back]
+    
+    pos += 1    
+    next_token = tokens[pos]
+    hay_question, pos = check_question_mark(tokens, pos)
+    if not hay_question:
+        return pos, False
+    
     
     pos += 1
     next_token = tokens[pos]
@@ -595,7 +600,7 @@ def parse_condition(tokens, pos):
             follows_rules = False
             return pos, follows_rules
     elif value == "isblocked?":
-        if next_token.type!= "bDIRECTION":
+        if next_token.type!= "bDIRECTION" and next_token.value not in  dir_validas:
             follows_rules = False
             return pos, follows_rules
     
@@ -771,7 +776,7 @@ input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left
 
 input_text3 = "new macro diego(ganas, de, vivir) { nop; }"
 
-input_text4 = "new var hola = 3 new macro diego(ganas, de, vivir) { nop; } exec{safeExe(pop(balloonsHere); jump(2););}"
+input_text4 = "new var hola = 3 new macro diego(ganas, de, vivir) { nop; }EXEC  {if not(isblocked?(left)) then  { turnToMy(left); walk(1); } else {nop;}  fi}"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text4)
