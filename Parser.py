@@ -128,8 +128,9 @@ def parse_command(tokens, pos, variables, macros):
         
         if pos >= len(tokens):
                 follows_rules = False
+                
         else:
-            next_token = tokens[pos]
+            next_token = tokens[pos + 1]
             if next_token.type != "SEMICOLON":
                     follows_rules = False
                     return pos, follows_rules
@@ -717,14 +718,14 @@ def parser_loop(tokens, pos):
     pos+= 1
     next_token = tokens[pos]
     if next_token.type!= "RPAREN":
-        follows_rules = False
+        follows_rules = True
     
     # se revisa que despues se encuentre un bloque
-    pos += 1
+    """pos += 1
     next_token = tokens[pos] 
     pos, follows_rules_CM = parse_command(tokens, pos)
     if not follows_rules_CM:
-        follows_rules = False
+        follows_rules = False"""
     
     # se verifica que se termine la instruccion con un od
     pos += 1
@@ -773,7 +774,7 @@ input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left
 
 input_text3 = "new macro diego(ganas, de, vivir) { nop; }"
 
-input_text4 = "do (isBlocked?(left)) { nop; } od;"
+input_text4 = "do (isBlocked?(left)) od;"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text4)
