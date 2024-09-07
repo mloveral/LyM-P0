@@ -58,15 +58,15 @@ def parse_command(tokens, pos, variables, macros):
     :param macros: Un diccionario que tiene como llaves los nombres de los macros
                     y como valores una tupla con el número de parametros que recibe y
                     una lista de los comandos a ejecutar
-    :type macros: _type_
-    :return: _description_
-    :rtype: _type_
+    :type macros: dict
+    :return: La posicion actual y si sigue o no las reglas del lenguaje
     """
     if pos >= len(tokens)-1:
         return pos, False
     
     next_token = tokens[pos]
     follows_rules = True
+    # Si no se recibe ningun comando (ni siquiera un nop), se dice que no sigue las reglas
     if next_token.type != "bCOMMANDSEXE" and next_token.type != "bNAME":
         follows_rules = False
         return pos, follows_rules
@@ -74,26 +74,26 @@ def parse_command(tokens, pos, variables, macros):
     while pos < len(tokens)-1 and follows_rules:
         next_token = tokens[pos]
 
-        #Si lo que sigue no es un comando ni un }, se declara que no sigue las reglas
-        if (next_token.type != "bCOMMANDSEXE" and next_token.type != "RBRACE" and next_token.type != "bNAME"):
+        if (next_token.type == "RBRACE" or next_token.type == "RPAREN"):
+            break
+        
+        #Si lo que sigue no es un comando ni un nombre, se declara que no sigue las reglas
+        if (next_token.type != "bCOMMANDSEXE" and next_token.type != "bNAME"):
             follows_rules = False
             return pos, follows_rules
-        
-        if (next_token.type == "RBRACE"):
-            break
 
         if next_token.type == "bNAME":
             #Mira el caso de que el command sea un macro
             pos, follows_rules = parse_macro(tokens, pos, variables, macros)
         elif next_token.value == "turntomy":
             #Caso en que sea un commando turnToMY
-            pos, follows_rules, last_DCK = parse_DCK(tokens, pos+1)
+            pos, follows_rules = parse_DCK(tokens, pos+1)
         elif next_token.value == "turntothe":
             #Caso en que sea un commando turnToThe
             pos, follows_rules =parse_O(tokens, pos+1)
         elif next_token.value == "walk" or next_token.value == "jump" or next_token.value == "drop" or next_token.value == "pick" or next_token.value == "grab" or next_token.value == "letgo" or next_token.value == "pop":
             #Caso en que sea un commando walk, jump, drop, pick, grab, letGo y pop
-            pos, follows_rules = parse_fun_n(tokens, pos+1)
+            pos, follows_rules = parse_fun_n(tokens, pos+1, variables)
         elif next_token.value == "moves":
             #Caso en que sea un commando moves
             pos, follows_rules = parse_Ds(tokens, pos+1)
@@ -103,7 +103,7 @@ def parse_command(tokens, pos, variables, macros):
             pass
         elif next_token.value == "safeexe":
             #Caso en que sea un commando safeExe
-            pos, follows_rules = parse_CM(tokens, pos+1)
+            pos, follows_rules = parse_CM(tokens, pos+1, variables, macros)
         elif next_token.value == "bCONDITIONAL":
             #Caso en que sea un commando conditional
             if next_token.value == "if":
@@ -205,7 +205,7 @@ def parse_DCK(tokens, pos):
     :type pos: int
     :return: Retorna la posicion del siguiente token y un bool que indica si se siguen las reglas
     """
-    last_DCK = False
+    
     dir_validas = ["left", "right", "back"]
     if pos >= len(tokens)-2:
         return pos, False
@@ -220,8 +220,8 @@ def parse_DCK(tokens, pos):
     next_token = tokens[pos]
     #Se verifica que el tipo del token sea una bDIRECTION
     if next_token.type == "bDIRECTIONS" and next_token.value in dir_validas:
+        follows_rules = True
         # Actualiza last_O si el token es de tipo bCOMMAND
-        last_DCK = next_token.value
     else:
         follows_rules = False
     
@@ -231,7 +231,7 @@ def parse_DCK(tokens, pos):
     if next_token.type!= "RPAREN":
         follows_rules = False    
     
-    return pos+1, follows_rules, last_DCK
+    return pos+1, follows_rules
 
 def parse_O(tokens, pos):
     if pos >= len(tokens)-2:
@@ -247,7 +247,7 @@ def parse_O(tokens, pos):
     #Se verifica que el tipo del token sea una bORIENTATION
     if next_token.type == "bORIENTATION":
         # Actualiza last_O si el token es de tipo bCOMMAND
-        last_O = next_token.value
+        follows_rules = True
     else:
         follows_rules = False
     
@@ -258,7 +258,7 @@ def parse_O(tokens, pos):
     if next_token.type != "RPAREN":
         follows_rules = False
     
-    return pos+1, follows_rules, last_O
+    return pos+1, follows_rules
 
 def parse_fun_n(tokens, pos, variables):
     """ Parsea las funciones que reciben como paramentro un valor n
@@ -274,7 +274,7 @@ def parse_fun_n(tokens, pos, variables):
     if pos >= len(tokens)-2:
         return pos, False
     
-    follows_rules = true
+    follows_rules = True
     
     next_token = tokens[pos]
     if next_token.type != "LPAREN":
@@ -297,6 +297,8 @@ def parse_Ds(tokens, pos):
     if pos >= len(tokens)-2:
         return pos, False
     
+    dir_validas = ["forward", "backwards", "left", "right"]
+    
     #Se verifica que se empiece con un (
     next_token = tokens[pos]
     follows_rules = True
@@ -304,25 +306,19 @@ def parse_Ds(tokens, pos):
         follows_rules = False
     pos += 1
     
-    #Se verifica que el tipo del token sea una bDIRECTIONS
-    next_token = tokens[pos]
-    if next_token.type != "bDIRECTIONS":
-        follows_rules = False
-    
     #Se verifica que en la siguiente posición el token no sea un ), para poder continuar con mas
     # bDIRECTIONS, que despues de cada bDIRECTIONS se ponga una coma y que se termine con un ).  
-    pos += 1
-    while follows_rules and pos < len(tokens)-1 and next_token.type != "RPAREN":
+    while follows_rules and pos < len(tokens)-1:
         next_token = tokens[pos]
-        if next_token.type == "RPAREN":
-            break
-        if next_token.type != "bDIRECTIONS":
+        if next_token.type != "bDIRECTIONS" and next_token.value not in dir_validas:
             follows_rules = False
         else:
             pos += 1
             next_token = tokens[pos]
-            if next_token.type != "RPAREN" and next_token.type != "COMMA":
+            if next_token.type != "RPAREN" and next_token.type != "COMA":
                 follows_rules = False
+            elif next_token.type == "RPAREN":
+                break
         pos+=1
     
     if pos <= len(tokens)-1 and next_token.type != "RPAREN":
@@ -332,8 +328,23 @@ def parse_Ds(tokens, pos):
     
     return pos+1, follows_rules
 
-def parse_CM(tokens, pos):
-    if pos >= len(tokens):
+def parse_CM(tokens, pos, variables, macros):
+    """Parsea un comando safeExe para que siga las reglas de la gramática
+
+    :param tokens: Los tokens generados por el lexer a partir del texto
+    :type tokens: list
+    :param pos: La posicion del current token en la lista de tokens
+    :type pos: int
+    :param variables: Un diccionario que tiene como llaves los nombres de las
+                        variables y como valores los valores de las variables
+    :type variables: dict
+    :param macros: Un diccionario que tiene como llaves los nombres de los macros
+                    y como valores una tupla con el número de parametros que recibe y
+                    una lista de los comandos a ejecutar
+    :type macros: dict
+    :return: La posicion actual y si sigue o no las reglas del lenguaje
+    """
+    if pos >= len(tokens) - 1:
         return pos, False
     
     #Se verifica que se empiece con un (
@@ -343,27 +354,21 @@ def parse_CM(tokens, pos):
         follows_rules = False
     pos += 1
     
-    #Se verifica que el tipo del token sea una b
-    next_token = tokens[pos]
-    if next_token.type != "bCOMMANDSEXE":
-        follows_rules = False
-    
     #Se verifica que en la siguiente posición el token no sea un ), para poder continuar con mas
     # bCOMMANDSEXE, que despues de cada bCOMMANDSEXE se ponga una coma y que se termine con un ). 
-    pos += 1
     while follows_rules and pos < len(tokens)-1 and next_token.type != "RPAREN":
         next_token = tokens[pos]
         if next_token.type != "bCOMMANDSEXE":
             follows_rules = False
         else:
-            pos += 1
+            pos, follows_rules = parse_command(tokens, pos, variables, macros)
             next_token = tokens[pos]
-            if next_token.type != "RPAREN" and next_token.type != "COMMA":
+            if next_token.type != "RPAREN":
                 follows_rules = False
-
-    # Si despues de un bCOMMANDSEXE se vuelve a llamar a otro comando, entonces se hace la misma revision
-    # anterior de forma recursiva.
-        pos, follows_rules = parse_command(tokens, pos+1)
+            elif next_token.type == "RPAREN":
+                break
+                        
+        pos += 1
     
     return pos+1, follows_rules
 
@@ -509,7 +514,7 @@ def parse_new_variable(tokens, pos, variables):
 
 def parse_n(token, variables):
     """
-    Parsea los posibles valores. Si el valor no es ninguno de los permitidos, se devuelve
+    Parser los posibles valores. Si el valor no es ninguno de los permitidos, se devuelve
     que no sigue las reglas
     """
     if token.type == "bNAME":
@@ -638,8 +643,8 @@ def parser_loop(tokens, pos):
                 
             pos += 1
             next_token = tokens[pos]
-            pos_DCK, follows_rules_DCK, last_DCK = parse_DCK(tokens, pos)
-            if next_token.value != last_DCK:
+            por_DCK, follows_rules_DCK = parse_DCK(tokens, pos)
+            if not follows_rules_DCK:
                     follows_rules = False
             
             pos += 1
@@ -661,7 +666,7 @@ def parser_loop(tokens, pos):
             pos += 1
             next_token = tokens[pos]
             pos_O, follows_rules_O, last_O = parse_O(tokens, pos)
-            if next_token.value != last_O:
+            if follows_rules_O != last_O:
                     follows_rules = False
             
             pos += 1
@@ -764,9 +769,9 @@ input_text1 = "NEW VAR hola = 3" #new variable
 
 input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left2=left Exec { if (isfacing?(north)) then {pop(two);}else{nop;} fi pop((2);) } EXEC { if not(isBlocked?(left ) ) then { turnToMy( left2 ) ; walk(balloonsHere) ; } else {nop;} fi } EXEC { safeExe (walk(1) ) ; }"
 
-input_text3 = "new macro diego(ganas, de, vivir, nulas) { nop; }"
+input_text3 = "new macro diego(ganas, de, vivir) { nop; }"
 
-input_text4 = "new var hola = 3 new macro diego(ganas, de, vivir, nulas) { nop; } exec{turnToMy?(left);}"
+input_text4 = "new var hola = 3 new macro diego(ganas, de, vivir) { nop; } exec{safeExe(pop(balloonsHere); jump(2););}"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text4)
