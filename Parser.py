@@ -666,8 +666,8 @@ def parser_loop(tokens, pos):
             
             pos += 1
             next_token = tokens[pos]
-            pos_O, follows_rules_O, last_O = parse_O(tokens, pos)
-            if follows_rules_O != last_O:
+            pos_O, follows_rules_O = parse_O(tokens, pos)
+            if not follows_rules_O:
                     follows_rules = False
             
             pos += 1
@@ -773,7 +773,7 @@ input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left
 
 input_text3 = "new macro diego(ganas, de, vivir) { nop; }"
 
-input_text4 = "do (isBlocked?(left)) EXEC { foo (1 ,3) } od;"
+input_text4 = "do (isBlocked?(left)) { nop; } od;"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text4)
