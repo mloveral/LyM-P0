@@ -644,7 +644,7 @@ def parser_loop(tokens, pos):
                 
             pos += 1
             next_token = tokens[pos]
-            por_DCK, follows_rules_DCK = parse_DCK(tokens, pos)
+            pos_DCK, follows_rules_DCK = parse_DCK(tokens, pos)
             if not follows_rules_DCK:
                     follows_rules = False
             
@@ -722,7 +722,8 @@ def parser_loop(tokens, pos):
     # se revisa que despues se encuentre un bloque
     pos += 1
     next_token = tokens[pos] 
-    if not parse_execution(tokens, pos):
+    pos, follows_rules_CM = parse_command(tokens, pos)
+    if not follows_rules_CM:
         follows_rules = False
     
     # se verifica que se termine la instruccion con un od
