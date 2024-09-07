@@ -108,7 +108,7 @@ def parse_command(tokens, pos, variables, macros):
         elif next_token.type == "bCONDITIONAL":
             #Caso en que sea un commando conditional
             if next_token.value == "if":
-                pos, follows_rules = parse_conditional(tokens, pos+1)
+                pos, follows_rules = parse_conditional(tokens, pos+1, variables, macros)
             else:
                 follows_rules = False
         elif next_token.type == "bLOOP":
@@ -530,25 +530,68 @@ def parse_n(token, variables):
     else:
         return False
 
-def parse_conditional(tokens, pos):
+def parse_conditional(tokens, pos, variables, macros):
     if pos >= len(tokens)-1:
         return pos, False
     
     next_token = tokens[pos]
     follows_rules = True
-    if next_token.value == "not":
-        pos, follows_rules = parse_conditional(tokens, pos+1)
-    elif next_token.type != "LPAREN":
+    if next_token.type != "LPAREN" and next_token.value != "not":
         follows_rules = False
+    elif next_token.value == "not":
+        pos, follows_rules = parse_condition(tokens, pos)
+    else:
+        pos, follows_rules = parse_condition(tokens, pos+1)
     
-    pos, follows_rules = parse_condition(tokens, pos+1)
-    
-    if pos >= len(tokens) and follows_rules:
+    if pos >= len(tokens) - 2 and follows_rules:
         follows_rules = False
     else:
         next_token = tokens[pos]
         if next_token.type != "RPAREN":
             follows_rules = False
+    
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type != "bCONDITIONAL" and next_token.value != "then":
+        return pos, False
+    
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type!= "LBRACE":
+        return pos, False
+    
+    pos, follows_rules = parse_command(tokens, pos+1, variables, macros)
+    #Verifica que los comandos terminen con un }
+    if pos < len(tokens) - 2 and follows_rules: 
+        next_token = tokens[pos]
+        if next_token.type != "RBRACE":
+            follows_rules = False
+    else:
+        return pos, False
+    
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type!= "bCONDITIONAL" and next_token.value!= "else":
+        return pos, False
+    
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type!= "LBRACE":
+        return pos, False
+    
+    pos, follows_rules = parse_command(tokens, pos+1, variables, macros)
+    #Verifica que los comandos terminen con un }
+    if pos < len(tokens) - 1 and follows_rules: 
+        next_token = tokens[pos]
+        if next_token.type != "RBRACE":
+            follows_rules = False
+    else:
+        follows_rules = False
+        
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type!= "bCONDITIONAL" and next_token.value != "fi":
+        follows_rules = False
     
     return pos+1, follows_rules
 
@@ -577,12 +620,11 @@ def parse_condition(tokens, pos):
     value = next_token.value
     dir_validas = ["left", "right", "front", "back"]
     
-    pos += 1    
-    next_token = tokens[pos]
-    hay_question, pos = check_question_mark(tokens, pos)
-    if not hay_question:
-        return pos, False
-    
+    if value != "not":
+        hay_question, pos = check_question_mark(tokens, pos)
+        if not hay_question:
+            return pos, False
+        
     
     pos += 1
     next_token = tokens[pos]
@@ -592,15 +634,17 @@ def parse_condition(tokens, pos):
     
     pos+= 1
     next_token = tokens[pos]
-    if value == "zero?":
+    if value == "not":
+        pos, follows_rules = parse_condition(tokens, pos)
+    elif value == "zero":
         if not parse_n(next_token):
             follows_rules = False
             return pos, follows_rules
-    elif value == "isfacing?":
+    elif value == "isfacing":
         if next_token.type != "bORIENTATION":
             follows_rules = False
             return pos, follows_rules
-    elif value == "isblocked?":
+    elif value == "isblocked":
         if next_token.type!= "bDIRECTION" and next_token.value not in  dir_validas:
             follows_rules = False
             return pos, follows_rules
@@ -610,7 +654,7 @@ def parse_condition(tokens, pos):
     if next_token.type!= "RPAREN":
         follows_rules = False
     
-    return pos+1, follows_rules
+    return pos, follows_rules
 
 def parser_loop(tokens, pos):
     if pos >= len(tokens) - 4:
@@ -776,8 +820,10 @@ input_text3 = "new macro diego(ganas, de, vivir) { nop; }"
 
 input_text4 = "do (isBlocked?(left)) od;"
 
+input_text5 = "EXEC  {if not(isblocked?(left)) then  { turnToMy(left); walk(1); } else {nop;}  fi;}"
+
 # Tokenize the input
-tokens = lexer.tokenize(input_text4)
+tokens = lexer.tokenize(input_text5)
 
 print(tokens)
 parse(tokens)    
