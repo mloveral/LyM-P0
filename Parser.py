@@ -113,7 +113,7 @@ def parse_command(tokens, pos, variables, macros):
         elif next_token.value == "bLOOP":
             #Caso en que sea un commando loop
             if next_token.value == "do":
-                pos, follows_rules = parse_conditional(tokens, pos+1)
+                pos, follows_rules = parser_loop(tokens, pos+1)
             else:
                 follows_rules = False
         elif next_token.value == "bREPEATS":
@@ -274,7 +274,7 @@ def parse_fun_n(tokens, pos, variables):
     if pos >= len(tokens)-2:
         return pos, False
     
-    follows_rules = true
+    follows_rules = True
     
     next_token = tokens[pos]
     if next_token.type != "LPAREN":
@@ -608,11 +608,6 @@ def parser_loop(tokens, pos):
     next_token = tokens[pos]
     follows_rules = True
     
-    # Se verifica que se empiece con un do
-    if next_token.type != "bLOOP" and next_token.value != "do":
-        follows_rules = False
-    pos += 1
-    
     # se verifica que le siga un (
     next_token = tokens[pos]
     if next_token.type != "LPAREN":
@@ -626,6 +621,7 @@ def parser_loop(tokens, pos):
         # se verifica que condición es y si es True or False para poder seguir corriendo el programa
         # tambien se verifica que las especificaciones de las condiciones esten entre parentesis
         if next_token.value == "isblocked":
+            
             pos += 1
             next_token = tokens[pos]
             if next_token.type != "QUESTIONMARK":
@@ -638,7 +634,7 @@ def parser_loop(tokens, pos):
                 
             pos += 1
             next_token = tokens[pos]
-            pos_DCK, follows_rules_DCK, last_DCK = parse_DCK(tokens, pos)
+            pos_DCK, follows_rules_DCK = parse_DCK(tokens, pos)
             if next_token.value != last_DCK:
                     follows_rules = False
             
@@ -766,7 +762,7 @@ input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left
 
 input_text3 = "new macro diego(ganas, de, vivir, nulas) { nop; }"
 
-input_text4 = "new var hola = 3 new macro diego(ganas, de, vivir, nulas) { nop; } exec{turnToMy?(left);}"
+input_text4 = "new var hola =3 new macro diego(ganas, de, vivir, nulas) { nop; }; do (isBlocked?(left)) od"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text4)
