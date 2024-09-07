@@ -773,7 +773,7 @@ input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left
 
 input_text3 = "new macro diego(ganas, de, vivir) { nop; }"
 
-input_text4 = "new var hola = 3 new macro diego(ganas, de, vivir) { nop; }EXEC  {if not(isblocked?(left)) then  { turnToMy(left); walk(1); } else {nop;}  fi}"
+input_text4 = "do (not(isBlocked?(left)) {walk(1); drop(1)} od;"
 
 # Tokenize the input
 tokens = lexer.tokenize(input_text4)
