@@ -751,7 +751,7 @@ lexer = lex.Lexer(lex.rules)
 # Example input
 input_text1 = "NEW VAR hola = 3" #new variable
 
-input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left2=left Exec { if (isfacing?(north)) then {pop(two);}else{nop;} fi pop((2);) } EXEC { if not(isBlocked?(left ) ) then { turnToMy( left2 ) ; walk(balloonsHere) ; } else {nop;} fi } EXEC { safeExe (walk(1) ) ; }"
+input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left2=left EXEC {if not (isfacing?(north)) then {pop(two);} else {nop;} fi;}  EXEC {if not(isBlocked?(left)) then {turnToMy(left); walk(2);} else {nop;} fi;}  "
 
 input_text3 = "new macro diego(ganas, de, vivir) { nop; }"
 
@@ -762,7 +762,7 @@ input_text5 = "EXEC  {if not(isblocked?(left)) then  { turnToMy(left); walk(1); 
 input_text6 = "EXEC {do (isblocked?(left)) {if not(isblocked?(left)) then { turnToMy(left); walk(1); } else {nop;}  fi ;} od;}"
 
 # Tokenize the input
-tokens = lexer.tokenize(input_text6)
+tokens = lexer.tokenize(input_text2)
 
 print(tokens)
 parse(tokens)    
