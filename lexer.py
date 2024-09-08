@@ -57,7 +57,7 @@ rules = [
     ("bCONSTANTS", r'\b(size|myx|myy|mychips|myballoons|balloonshere|chipshere|roomforchips)\b'),  # Constantes
     ("bCONDITIONAL", r'\b(if|then|else|fi)\b'),  # Condicionales
     ("bLOOP", r'\b(do|od)\b'),  # Bucles
-    ("bREPEAT", r'\b(rep|times)\b'),  # Repetición
+    ("bREPEAT", r'\b(repeat|times)\b'),  # Repetición
     ("bCONDITION", r'\b(isblocked|isfacing|zero|not)\b'),  # Condiciones
     ("QUESTIONMARK", r'\?'),
     ("SEMICOLON", r'\;'),  # Punto y coma

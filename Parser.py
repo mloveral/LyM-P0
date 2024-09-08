@@ -66,7 +66,7 @@ def parse_command(tokens, pos, variables, macros):
     
     next_token = tokens[pos]
     follows_rules = True
-    valid_commands = ["bCOMMANDSEXE", "bNAME", "bCONDITIONAL", "bLOOP", "bREPEATS"]
+    valid_commands = ["bCOMMANDSEXE", "bNAME", "bCONDITIONAL", "bLOOP", "bREPEAT"]
     # Si no se recibe ningun comando (ni siquiera un nop), se dice que no sigue las reglas
     if next_token.type not in valid_commands :
         follows_rules = False
@@ -114,13 +114,13 @@ def parse_command(tokens, pos, variables, macros):
         elif next_token.type == "bLOOP":
             #Caso en que sea un commando loop
             if next_token.value == "do":
-                pos, follows_rules = parser_loop(tokens, pos+1)
+                pos, follows_rules = parser_loop(tokens, pos+1, variables, macros)
             else:
                 follows_rules = False
-        elif next_token.type == "bREPEATS":
+        elif next_token.type == "bREPEAT":
             #Caso en que sea un commando repeats
-            if next_token.value == "repeats":
-                pos, follows_rules = parse_conditional(tokens, pos+1)
+            if next_token.value == "repeat":
+                pos, follows_rules = parser_repeat(tokens, pos+1, variables, macros)
             else:
                 follows_rules = False
         else: 
@@ -130,7 +130,7 @@ def parse_command(tokens, pos, variables, macros):
                 follows_rules = False
                 
         else:
-            next_token = tokens[pos + 1]
+            next_token = tokens[pos]
             if next_token.type != "SEMICOLON":
                     follows_rules = False
                     return pos, follows_rules
@@ -138,7 +138,7 @@ def parse_command(tokens, pos, variables, macros):
                 pos += 1
                     
 
-    return pos, follows_rules            
+    return pos, follows_rules         
         
 def parse_macro(tokens, pos, variables, macros):
     """
@@ -456,12 +456,12 @@ def parse_new_macro(tokens, pos,variables, macros):
                     follows_rules = False
             elif next_token.type == "bLOOP":
                 if next_token.value == "do":
-                    pos, follows_rules = parser_loop(tokens, pos+1)
+                    pos, follows_rules = parser_loop(tokens, pos+1, variables, macros )
                 else:
                     follows_rules = False
-            elif next_token.type == "bREPEATS":
-                if next_token.value == "repeats":
-                    pos, follows_rules = parser_repeat(tokens, pos+1)
+            elif next_token.type == "bREPEAT":
+                if next_token.value == "repeat":
+                    pos, follows_rules = parser_repeat(tokens, pos+1,  variables, macros)
                 else:
                     follows_rules = False
             elif next_token.type == "bCOMMANDSEXE":
@@ -656,11 +656,10 @@ def parse_condition(tokens, pos):
     
     return pos, follows_rules
 
-def parser_loop(tokens, pos):
+def parser_loop(tokens, pos, variables, macros):
     if pos >= len(tokens) - 4:
         return pos, False
     
-    next_token = tokens[pos]
     follows_rules = True
     
     # se verifica que le siga un (
@@ -671,105 +670,30 @@ def parser_loop(tokens, pos):
     
     # despues del parentesis tiene que ir una condicción
     next_token = tokens[pos]
-    if next_token.type == "bCONDITION":
-        
-        # se verifica que condición es y si es True or False para poder seguir corriendo el programa
-        # tambien se verifica que las especificaciones de las condiciones esten entre parentesis
-        if next_token.value == "isblocked":
-            
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.type != "QUESTIONMARK":
-                follows_rules = False
-            
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.type != "LPAREN":
-                follows_rules = False
-                
-            pos += 1
-            next_token = tokens[pos]
-            pos_DCK, follows_rules_DCK = parse_DCK(tokens, pos)
-            if not follows_rules_DCK:
-                    follows_rules = False
-            
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.type != "RPAREN":
-                follows_rules = False
-        
-        elif next_token.value == "isfacing":
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.type != "QUESTIONMARK":
-                follows_rules = False
-            
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.type != "LPAREN":
-                follows_rules = False
-            
-            pos += 1
-            next_token = tokens[pos]
-            pos_O, follows_rules_O = parse_O(tokens, pos)
-            if not follows_rules_O:
-                    follows_rules = False
-            
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.type != "RPAREN":
-                follows_rules = False
-            
-            
-        elif next_token.value == "zero":
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.type != "QUESTIONMARK":
-                follows_rules = False
-            
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.type != "LPAREN":
-                follows_rules = False
-                        
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.value == 0:
-                    follows_rules = False
-            
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.type != "RPAREN":
-                follows_rules = False
-            
-        elif next_token.value == "not":
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.type != "LPAREN":
-                follows_rules = False
-            
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.value == True:
-                    follows_rules = False
-
-            pos += 1
-            next_token = tokens[pos]
-            if next_token.type != "RPAREN":
-                follows_rules = False
+    pos, follows_rules = parse_condition(tokens, pos)
+    if not follows_rules:
+        follows_rules= False
         
     # se verifica que despues de las condiciones se cierre el parentesis inicial
     pos+= 1
     next_token = tokens[pos]
     if next_token.type!= "RPAREN":
-        follows_rules = True
+        follows_rules = False
     
     # se revisa que despues se encuentre un bloque
-    """pos += 1
-    next_token = tokens[pos] 
-    pos, follows_rules_CM = parse_command(tokens, pos)
-    if not follows_rules_CM:
-        follows_rules = False"""
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type!= "LBRACE":
+        return pos, False
+        
+    pos, follows_rules = parse_command(tokens, pos+1, variables, macros)
+    #Verifica que los comandos terminen con un }
+    if pos < len(tokens) - 2 and follows_rules: 
+        next_token = tokens[pos]
+        if next_token.type != "RBRACE":
+            follows_rules = False
+    else:
+        return pos, False
     
     # se verifica que se termine la instruccion con un od
     pos += 1
@@ -778,19 +702,16 @@ def parser_loop(tokens, pos):
         follows_rules = False
         
     return pos+1, follows_rules
+
+
         
-def parser_repeat(tokens, pos):
+def parser_repeat(tokens, pos, variables, macros):
     next_token = tokens[pos]
     follows_rules = True
     
-    #Verificamos que empiece con un repeat
-    if next_token.type != "bREPEAT" and next_token.value != "repeat":
-        follows_rules = False
-    
-    #Verificamos que lo que le sigue sea un valor n
-    pos += 1
+    #Verificamos que le siga una constante
     next_token = tokens[pos]
-    if not parse_n(next_token):
+    if next_token.type != "bCONSTANTS":
         follows_rules = False
     
     #Verificamos que en le siguiente haya un repeat
@@ -799,11 +720,27 @@ def parser_repeat(tokens, pos):
     if next_token.type != "bREPEAT" and next_token.value != "times":
         follows_rules = False
     
-    #Verificamos que despues de ese repeat haya un bloque
+    #Verificamos que lo que le sigue sea un valor n
     pos += 1
-    next_token = tokens[pos] 
-    if not parse_execution(tokens, pos):
+    next_token = tokens[pos]
+    if next_token.type != "NUMBER":
         follows_rules = False
+    
+    #Verificamos que despues de ese valor n haya un bloque
+    
+    pos += 1
+    next_token = tokens[pos]
+    if next_token.type!= "LBRACE":
+        return pos, False
+    
+    pos, follows_rules = parse_command(tokens, pos+1, variables, macros)
+    #Verifica que los comandos terminen con un }
+    if pos < len(tokens) - 2 and follows_rules: 
+        next_token = tokens[pos]
+        if next_token.type != "RBRACE":
+            follows_rules = False
+    else:
+        return pos, False
     
     return pos+1, follows_rules
 
@@ -818,12 +755,14 @@ input_text2 = "new var two =2 new var trois =3 new var ochenta = 12 new var left
 
 input_text3 = "new macro diego(ganas, de, vivir) { nop; }"
 
-input_text4 = "do (isBlocked?(left)) od;"
+input_text4 = "EXEC {repeat mychips times 3 {if not(isblocked?(left)) then  { turnToMy(left); walk(1); } else {nop;}  fi;} ;}"
 
 input_text5 = "EXEC  {if not(isblocked?(left)) then  { turnToMy(left); walk(1); } else {nop;}  fi;}"
 
+input_text6 = "EXEC {do (isblocked?(left)) {if not(isblocked?(left)) then { turnToMy(left); walk(1); } else {nop;}  fi ;} od;}"
+
 # Tokenize the input
-tokens = lexer.tokenize(input_text5)
+tokens = lexer.tokenize(input_text6)
 
 print(tokens)
 parse(tokens)    
