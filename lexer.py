@@ -55,20 +55,20 @@ rules = [
     ("LBRACE", r'\{'),  # Llave izquierda
     ("RBRACE", r'\}'),  # Llave derecha
     ("bCONSTANTS", r'\b(size|myx|myy|mychips|myballoons|balloonshere|chipshere|roomforchips)\b'),  # Constantes
-    ("bCONDITIONAL", r'\b(if|then|else|fi)\b'),  # Condicionales
-    ("bLOOP", r'\b(do|od)\b'),  # Bucles
-    ("bREPEAT", r'\b(repeat|times)\b'),  # Repetición
-    ("bCONDITION", r'\b(isblocked|isfacing|zero|not)\b'),  # Condiciones
+    ("bCONDITIONAL", r'\b("if"|"then"|"else"|"fi")\b'),  # Condicionales
+    ("bLOOP", r'\b("do"|"od")\b'),  # Bucles
+    ("bREPEAT", r'\b("repeat"|"times")\b'),  # Repetición
+    ("bCONDITION", r'\b("isblocked"|"isfacing"|"zero"|"not")\b'),  # Condiciones
     ("QUESTIONMARK", r'\?'),
     ("SEMICOLON", r'\;'),  # Punto y coma
     ("COMA", r'\,'), # Comma
     ("EQUALS", r'\='), # Equals
-    ("bDIRECTIONS", r'\b(forward|right|backwards|left|back)\b'),  # Direcciones
-    ("bORIENTATION", r'\b(north|east|south|west)\b'),  # Orientación
-    ("bCOMMANDSEXE", r'\b(turntomy|turntothe|walk|jump|drop|pick|grab|letgo|pop|moves|nop|safeexe)\b'),  # Otros comandos 
-    ("bEXECUTE", r'\b(exec)\b'), # Ejecutar
-    ("bMACRO", r'\b(new macro|newmacro)\b'),  # Definición de macro
-    ("bVARIABLE", r'\b(new var|newvar)\b'),  # Definición de variable
+    ("bDIRECTIONS", r'\b("forward"|"right"|"backwards"|"left"|"back")\b'),  # Direcciones
+    ("bORIENTATION", r'\b("north"|"east"|"south"|"west")\b'),  # Orientación
+    ("bCOMMANDSEXE", r'\b("turntomy"|"turntothe"|"walk"|jump|drop|pick|grab|letgo|pop|moves|nop|safeexe)\b'),  # Otros comandos 
+    ("bEXECUTE", r'\b("exec")\b'), # Ejecutar
+    ("bMACRO", r'\b("new macro"|"newmacro")\b'),  # Definición de macro
+    ("bVARIABLE", r'\b("new var"|"newvar")\b'),  # Definición de variable
     ("NUMBER", r'\d+(\.\d*)?'),  # Valores numéricos 
     ("bNAME", r'\w+'),  # Nombres de variables o macros (modificado para capturar nombres completos) 
 ]
