@@ -1,3 +1,7 @@
+# Written by: 
+# Manuela Lovera, code: 202320973 email: m.loveral@uniandes.edu.co
+# and Victoria Gonzalez code: 202320852 email: vs.gonzalezc1@uniandes.edu.co
+
 import re
 from typing import List, Tuple
 
